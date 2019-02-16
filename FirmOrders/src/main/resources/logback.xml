@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property name="appname" value="FirmOrdes" />
+	<property name="pattern" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n" />
+
+	<!-- 控制台 -->
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<!-- <evaluator>
+				<expression>logger.contains("com.alibaba.dubbo")</expression>
+			</evaluator> -->
+			<OnMatch>DENY</OnMatch>
+			<OnMismatch>ACCEPT</OnMismatch>
+		</filter>
+		<Target>System.out</Target>
+		<encoder>
+			<pattern>${pattern}</pattern>
+		</encoder>
+	</appender>
+	
+	<!-- 日常滚动日志文件 -->
+	<appender name="dubugRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<Append>true</Append>
+		<File>${catalina.base}/logs/${appname}/rolling/dubug.log</File>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>${pattern}</pattern>
+		</layout>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>debug</level>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<maxIndex>100</maxIndex>
+			<FileNamePattern>${catalina.base}/logs/${appname}/rolling/dubug.%d{yyyy-MM-dd}.%i</FileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>2048KB</MaxFileSize>
+		</triggeringPolicy>
+	</appender>
+	<appender name="errorRollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<Append>true</Append>
+		<File>${catalina.base}/logs/${appname}/rolling/error.log</File>
+		<encoder>
+			<pattern>${pattern}</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>error</level>
+		</filter>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<maxIndex>100</maxIndex>
+			<FileNamePattern>${catalina.base}/logs/${appname}/rolling/error.%d{yyyy-MM-dd}.%i</FileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>2048KB</MaxFileSize>
+		</triggeringPolicy>
+	</appender>
+	
+	<!-- 业务日志文件 -->
+	<appender name="businessErrorFile" class="ch.qos.logback.core.FileAppender">
+		<File>${catalina.base}/logs/${appname}/business/error.log</File>
+		<Append>true</Append>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>${pattern}</pattern>
+		</layout>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+	</appender>
+
+
+	<root level="ERROR">
+		<appender-ref ref="stdout" />
+		<appender-ref ref="dubugRollingFile" />
+		<appender-ref ref="errorRollingFile" />
+		<appender-ref ref="businessErrorFile" />
+	</root>
+</configuration>
