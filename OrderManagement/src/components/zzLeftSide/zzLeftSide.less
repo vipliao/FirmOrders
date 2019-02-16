@@ -1,0 +1,48 @@
+.left-side {
+    .logo {
+        height: 50px;
+        margin: 0;
+        padding: 0;
+        line-height: 50px;
+        background: #5578DC;
+        text-align: center;
+        color: #fff;
+        overflow: hidden;
+
+        img {
+            width: auto;
+            height: 40px;
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        h1 {
+            display: inline-block;
+            height: 50px;
+            margin: 0;
+            padding: 5px 10px;
+            vertical-align: middle;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+    }
+
+    .zui-menu {
+        height: calc(~'100vh - 64px') !important;
+    }
+
+    .ant-menu-dark, .ant-menu-dark .ant-menu-sub {
+        box-shadow: none !important;
+    }
+
+    .ant-layout-sider-trigger {
+        background-color: #24272d;
+    }
+
+    &.ant-layout-sider {
+        position: relative;
+        z-index: 100;
+    }
+}
