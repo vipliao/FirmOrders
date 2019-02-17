@@ -315,7 +315,8 @@ class OrderList extends React.Component {
             searchKey: {},
             drawerVisible: false,
             showExportOrderModal: false,
-            exportOrderDate: null
+            exportOrderDate: null,
+            loadingExportButton:false,
         };
     }
 
@@ -401,7 +402,11 @@ class OrderList extends React.Component {
     }
     //关闭导出订单弹框
     onCloseExportOrderModal = () => {
-        this.setState({showExportOrderModal: false});
+        this.setState({showExportOrderModal: false,loadingExportButton:false});
+    }
+    onErrorExportOrderModal = msg => {
+        this.setState({loadingExportButton:false});
+        Message.error(msg);
     }
 
     onExportOrderDateChange = val => {
@@ -419,13 +424,13 @@ class OrderList extends React.Component {
         const param = {};
         param.deliverBeginDate = exportOrderDate[0].format("YYYY-MM-DD");
         param.deliverEndDate = exportOrderDate[1].format("YYYY-MM-DD");
-
+        this.setState({loadingExportButton :true});
         Util.exportExcel({
             url: exportOrderUrl,
             method: 'POST',
             body: JSON.stringify(param),
             success: () => this.onCloseExportOrderModal(),
-            error: (data) => Message.error(data.backMsg)
+            error: (data) => this.onErrorExportOrderModal(data.backMsg)
         });
     }
 
@@ -563,7 +568,7 @@ class OrderList extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {dataSource, pagination, loading, keyWords, showUpload, showUpdatExpress, drawerVisible, showExportOrderModal} = this.state;
+        const {dataSource, pagination, loading, keyWords, showUpload, showUpdatExpress, drawerVisible, showExportOrderModal,loadingExportButton} = this.state;
 
         return (
             <div className="zui-content page-orderList">
@@ -819,7 +824,7 @@ class OrderList extends React.Component {
                         />
                     </FormItem>
                     <div style={{textAlign: 'center'}}>
-                        <Button type='primary' onClick={this.handleExportOrderModal}>确认</Button>
+                        <Button type='primary' loading={loadingExportButton} onClick={this.handleExportOrderModal}>确认</Button>
                     </div>
                 </Modal>
                 {/* 导入仓库回执信息 */}
