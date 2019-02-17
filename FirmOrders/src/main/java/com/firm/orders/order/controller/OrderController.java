@@ -169,10 +169,10 @@ private static Logger logger = LoggerFactory.getLogger(OrderController.class);
 		try {
 			return service.exportOrderExcel(map);
 		} catch (Exception e) {
-			logger.error("导出快递信息方法：", e);
+			logger.error("导出订单信息方法：", e);
 			JsonBackData back = new JsonBackData();
 			back.setSuccess(false);
-			back.setBackMsg("导出快递信息失败," + e.getMessage());
+			back.setBackMsg("导出订单信息失败," + e.getMessage());
 			return back;
 		}
 		

@@ -1107,7 +1107,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				deliverDateStr = deliverEndDateStr+"之前";
 			} 
 			if((deliverBeginDateStr != null && !deliverBeginDateStr.equals("")) && (deliverEndDateStr!=null && !deliverEndDateStr.equals(""))){
-				deliverDateStr =deliverBeginDateStr+"到"+deliverEndDateStr;
+				if(deliverBeginDateStr.equals(deliverEndDateStr)) {
+					deliverDateStr =deliverBeginDateStr;
+				}else {
+					deliverDateStr =deliverBeginDateStr+"到"+deliverEndDateStr;
+				}
+				
 			}
 		}
 		if(deliverDateStr == null || deliverDateStr.equals("")){
