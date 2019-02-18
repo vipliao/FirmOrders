@@ -19,6 +19,8 @@ public class WarehouseEntity extends SuperEntity{
 	private String code;
 	@Column(name="orde_code_prefix")
 	private String ordeCodePrefix;
+	@Column(name="biz_range")
+	private int bizRange;
 	
 	public String getName() {
 		return name;
@@ -38,6 +40,10 @@ public class WarehouseEntity extends SuperEntity{
 	public void setOrdeCodePrefix(String ordeCodePrefix) {
 		this.ordeCodePrefix = ordeCodePrefix;
 	}
-	
-	
+	public int getBizRange() {
+		return bizRange;
+	}
+	public void setBizRange(int bizRange) {
+		this.bizRange = bizRange;
+	}
 }

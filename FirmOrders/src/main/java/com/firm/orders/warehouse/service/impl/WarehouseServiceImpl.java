@@ -91,7 +91,7 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 					vo.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 					
 					StringBuffer sql = new StringBuffer("insert into warehouse_info"
-							+ " (id,create_time,update_time,memo,name,code,orde_code_prefix)"
+							+ " (id,create_time,update_time,memo,name,code,orde_code_prefix,biz_range)"
 							+ " values ");
 					sql.append("(");
 					sql.append("'"+vo.getId()+"',");
@@ -121,6 +121,7 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 					}else{
 						sql.append("#"+null+"#,");
 					}
+					sql.append(vo.getBizRange()+",");
 					sql.append(")");
 					sqls.add(sql.toString().replace("#", ""));
 				}

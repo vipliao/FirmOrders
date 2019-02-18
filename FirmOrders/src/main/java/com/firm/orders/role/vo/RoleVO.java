@@ -10,6 +10,7 @@ public class RoleVO extends SuperVO{
 	private static final long serialVersionUID = 1L;
 	private String roleCode;
 	private String roleName;
+	private int bizRange;
 	public String getRoleCode() {
 		return roleCode;
 	}
@@ -22,4 +23,11 @@ public class RoleVO extends SuperVO{
 	public void setRoleName(String roleName) {
 		this.roleName = roleName;
 	}
+	public int getBizRange() {
+		return bizRange;
+	}
+	public void setBizRange(int bizRange) {
+		this.bizRange = bizRange;
+	}
+	
 }

@@ -12,6 +12,7 @@ public class WarehouseVO extends SuperSubVO{
 	private String name;
 	private String code;
 	private String ordeCodePrefix;
+	private int bizRange;
 
 	public String getName() {
 		return name;
@@ -31,7 +32,11 @@ public class WarehouseVO extends SuperSubVO{
 	public void setOrdeCodePrefix(String ordeCodePrefix) {
 		this.ordeCodePrefix = ordeCodePrefix;
 	}
-	
-	
+	public int getBizRange() {
+		return bizRange;
+	}
+	public void setBizRange(int bizRange) {
+		this.bizRange = bizRange;
+	}
 	
 }

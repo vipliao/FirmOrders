@@ -50,6 +50,8 @@ import com.firm.orders.product.vo.ProductVO;
 import com.firm.orders.role.service.IRoleService;
 import com.firm.orders.role.vo.RoleVO;
 import com.firm.orders.user.vo.UserVO;
+import com.firm.orders.warehouse.service.IWarehouseService;
+import com.firm.orders.warehouse.vo.WarehouseVO;
 
 
 @Service
@@ -59,6 +61,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	private JdbcTemplate jdbcTemplate;
 	@Autowired
 	private IRoleService roleService;
+	@Autowired
+	private IWarehouseService warehouseService;
 	
 	@Transactional
 	@Override
@@ -272,11 +276,65 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		vo.setTotalAmount(vo.getDepositAmout().add(vo.getCollectionAmout()));
 		BigDecimal costAmount =new BigDecimal(0.00);
+		
+		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
+	/*	WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		if(warehouseVO != null){
+			if(warehouseVO.getBizRange()==0){
+				//蜂蜜
+				
+				 * ==========================广西仓库=======================================
+				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费/打包费
+				 *  		+手续费（每个订单代收金额*百分比）+邮费/运费
+				 *  成本比例=武汉仓库成本费用/订单总金额
+				 * ==========================================================================
+				 
+				
+				if (vo.getExpressCompany()==0){
+					//顺丰
+					costAmount = (sumProductCost.add(new BigDecimal(5.5))
+							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
+				}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
+					//中通或圆通
+					costAmount = (sumProductCost.add(new BigDecimal(5.5))
+							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(9)));
+				}else if(vo.getExpressCompany()==4){
+					//德邦
+					costAmount = (sumProductCost.add(new BigDecimal(5.5))
+							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
+				}
+				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
+			}else if(warehouseVO.getBizRange()==1){
+				//男科
+				
+				 * ==========================武汉仓库=======================================
+				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费（每个订单3元）
+				 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50）
+				 *	成本比例=武汉仓库成本费用/订单总金额
+				 * ==========================================================================
+				 
+				costAmount = (sumProductCost.add(new BigDecimal(3))
+						.add(vo.getCollectionAmout().multiply(new BigDecimal(0.025))).add(new BigDecimal(50)));
+				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
+			}
+			
+			if (vo.getTotalAmount() == null || vo.getTotalAmount().compareTo(new BigDecimal(0.00)) <= 0) {
+				vo.setTotalAmount(new BigDecimal(0.00));
+				costRatio = new BigDecimal(1.00);
+			} else {
+				costRatio = costAmount.divide(vo.getTotalAmount(),4,BigDecimal.ROUND_HALF_EVEN);	
+			}
+		}else{
+			throw new Exception("仓库数据输入有误！");
+		}*/
+		
+		
 		if(vo.getWarehouse() == 0 || vo.getWarehouse() == 2){
 			/*
 			 * ==========================武汉仓库=======================================
 			 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费（每个订单3元）
-			 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50） 成本比例=武汉仓库成本费用/订单总金额
+			 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50） 
+			 *  成本比例=武汉仓库成本费用/订单总金额
 			 * ==========================================================================
 			 */
 			costAmount = (sumProductCost.add(new BigDecimal(3))
@@ -287,7 +345,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			 * ==========================北京仓库======================================
 			 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+耗材费（每单2.5元）
 			 * 			+操作费（每单1.5元） +手续费（顺丰：每单代收金额1.3% 邮局：每单代收金额2.3%）
-			 * 			+邮费（每单50）+管理费（每单代收金额3%） 成本比例=北京仓库成本费用/订单总金额
+			 * 			+邮费（每单50）+管理费（每单代收金额3%） 
+			 * 	成本比例=北京仓库成本费用/订单总金额
 			 * =========================================================================
 			 */
 			BigDecimal serviceCharge = new BigDecimal(0.00);
@@ -325,6 +384,35 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		BigDecimal costRatio = calculateCostRatio(vo);
 		
+		//根据仓库业务范围区分是男科还是蜂蜜，暂时注释
+		/*WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		if(warehouseVO != null){
+			if(warehouseVO.getBizRange()==1){
+				//男科
+				===============================================================================
+				 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
+				 * 北京仓库成本超过：对于业务员订单性质为热线 、回访且成本比例小于24%则不超 ；订单性质为复购且成本比例小于26%则不超
+				 * ===============================================================================
+				 
+				
+				if ("热线".equals(vo.getOrderNature()) || "回访".equals(vo.getOrderNature())) {
+					if (new BigDecimal(0.16).compareTo(costRatio) < 0) {
+						return false;
+					}
+				} else  {
+					if (new BigDecimal(0.18).compareTo(costRatio) < 0) {
+						return false;
+					} 
+				}
+			}else if(warehouseVO.getBizRange()==0){
+				//蜂蜜
+				if (new BigDecimal(0.22).compareTo(costRatio) < 0) {
+					return false;
+				}
+			}
+		}*/
+		
+		
 		/*===============================================================================
 		 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
 		 * 北京仓库成本超过：对于业务员订单性质为热线 、回访且成本比例小于24%则不超 ；订单性质为复购且成本比例小于26%则不超
@@ -344,6 +432,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				return false;
 			}
 		}
+		
+		
+		
 
 		return true;
 	}
@@ -762,6 +853,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							}
 
 						}
+						
 						db.setCostRatio( calculateCostRatio(db));
 						db.setIsOverCost(isOverCost(db)?0:1);
 						//if(db.getExpressCode() != null && !db.getExpressCode().equals("")){
@@ -844,8 +936,6 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		
 
 	}
-
-	
 	
 	@Override
 	@Transactional
