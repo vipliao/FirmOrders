@@ -11,6 +11,8 @@ public class RoleVO extends SuperVO{
 	private String roleCode;
 	private String roleName;
 	private int bizRange;
+	private int level;
+	
 	public String getRoleCode() {
 		return roleCode;
 	}
@@ -29,5 +31,10 @@ public class RoleVO extends SuperVO{
 	public void setBizRange(int bizRange) {
 		this.bizRange = bizRange;
 	}
-	
+	public int getLevel() {
+		return level;
+	}
+	public void setLevel(int level) {
+		this.level = level;
+	}
 }

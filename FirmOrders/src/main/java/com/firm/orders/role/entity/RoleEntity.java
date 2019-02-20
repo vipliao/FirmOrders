@@ -20,6 +20,7 @@ public class RoleEntity extends SuperEntity{
 	private String roleName;
 	@Column(name="biz_range")
 	private int bizRange;
+	private int level;
 	
 	public String getRoleCode() {
 		return roleCode;
@@ -39,4 +40,12 @@ public class RoleEntity extends SuperEntity{
 	public void setBizRange(int bizRange) {
 		this.bizRange = bizRange;
 	}
+	public int getLevel() {
+		return level;
+	}
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	
+	
 }

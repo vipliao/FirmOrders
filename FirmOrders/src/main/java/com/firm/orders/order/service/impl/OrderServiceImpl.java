@@ -76,18 +76,28 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if(vo.getDeliverDate() == null || vo.getDeliverDate().toString().equals("")){
 			throw new Exception("订单发货时间不能为空!");
 		}
-		if("004".equals(getCurrentUserRoleCode())){
-			//当天时间过了10点,不能新增发货时间为今天的订单
-			String deliverDateStr = new SimpleDateFormat("yyMMdd").format(vo.getDeliverDate());
-			String today = new SimpleDateFormat("yyMMdd").format(new Date());
-			Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
-			if(today.equals(deliverDateStr) && new Date().getTime()>todayLockTime.getTime()){
-				throw new Exception("发货日期为今天的订单不处于业务员可操作的状态!");
+		RoleVO roleVO  = getCurrentUserRole();
+		if(roleVO != null){
+			WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+			if(warehouseVO != null){
+				if(roleVO.getBizRange() !=  warehouseVO.getBizRange()){
+					throw new Exception("没有权限添加"+warehouseVO.getName()+"仓库的订单!");
+				}
 			}
-			if(Integer.parseInt(today) > Integer.parseInt(deliverDateStr)){
-				throw new Exception("发货日期为今天之前的订单不处于业务员可操作的状态!");
+			if(roleVO.getLevel()==3){
+				//当天时间过了10点,不能新增发货时间为今天的订单
+				String deliverDateStr = new SimpleDateFormat("yyMMdd").format(vo.getDeliverDate());
+				String today = new SimpleDateFormat("yyMMdd").format(new Date());
+				Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
+				if(today.equals(deliverDateStr) && new Date().getTime()>todayLockTime.getTime()){
+					throw new Exception("发货日期为今天的订单不处于业务员可操作的状态!");
+				}
+				if(Integer.parseInt(today) > Integer.parseInt(deliverDateStr)){
+					throw new Exception("发货日期为今天之前的订单不处于业务员可操作的状态!");
+				}
 			}
 		}
+		
 		if(vo.getId()!=null){
 			if(vo.getOrderCode() == null || vo.getOrderCode().equals("")){
 				throw new Exception("订单编号不能为空!");
@@ -278,17 +288,17 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		BigDecimal costAmount =new BigDecimal(0.00);
 		
 		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
-	/*	WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
 		if(warehouseVO != null){
 			if(warehouseVO.getBizRange()==0){
 				//蜂蜜
 				
-				 * ==========================广西仓库=======================================
+				 /* ==========================广西仓库=======================================
 				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费/打包费
 				 *  		+手续费（每个订单代收金额*百分比）+邮费/运费
 				 *  成本比例=武汉仓库成本费用/订单总金额
 				 * ==========================================================================
-				 
+				 */
 				
 				if (vo.getExpressCompany()==0){
 					//顺丰
@@ -307,11 +317,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}else if(warehouseVO.getBizRange()==1){
 				//男科
 				
-				 * ==========================武汉仓库=======================================
+				 /* ==========================武汉仓库=======================================
 				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费（每个订单3元）
 				 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50）
 				 *	成本比例=武汉仓库成本费用/订单总金额
 				 * ==========================================================================
+				 */
 				 
 				costAmount = (sumProductCost.add(new BigDecimal(3))
 						.add(vo.getCollectionAmout().multiply(new BigDecimal(0.025))).add(new BigDecimal(50)));
@@ -326,55 +337,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 		}else{
 			throw new Exception("仓库数据输入有误！");
-		}*/
-		
-		
-		if(vo.getWarehouse() == 0 || vo.getWarehouse() == 2){
-			/*
-			 * ==========================武汉仓库=======================================
-			 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费（每个订单3元）
-			 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50） 
-			 *  成本比例=武汉仓库成本费用/订单总金额
-			 * ==========================================================================
-			 */
-			costAmount = (sumProductCost.add(new BigDecimal(3))
-					.add(vo.getCollectionAmout().multiply(new BigDecimal(0.025))).add(new BigDecimal(50)));
-			vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
-		}else if(vo.getWarehouse() == 1){
-			/*
-			 * ==========================北京仓库======================================
-			 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+耗材费（每单2.5元）
-			 * 			+操作费（每单1.5元） +手续费（顺丰：每单代收金额1.3% 邮局：每单代收金额2.3%）
-			 * 			+邮费（每单50）+管理费（每单代收金额3%） 
-			 * 	成本比例=北京仓库成本费用/订单总金额
-			 * =========================================================================
-			 */
-			BigDecimal serviceCharge = new BigDecimal(0.00);
-
-			if (vo.getExpressCompany() == 0) {
-
-				serviceCharge = vo.getCollectionAmout().multiply(new BigDecimal(0.013));
-			} else if (vo.getExpressCompany() == 1) {
-				serviceCharge = vo.getCollectionAmout().multiply(new BigDecimal(0.023));
-			}
-			costAmount=(sumProductCost.add(new BigDecimal(2.5)).add(new BigDecimal(1.5)).add(serviceCharge)
-					.add(new BigDecimal(50)).add(vo.getCollectionAmout().multiply(new BigDecimal(0.03))));
-			vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
 		}
-		if (vo.getTotalAmount() == null || vo.getTotalAmount().compareTo(new BigDecimal(0.00)) <= 0) {
-			vo.setTotalAmount(new BigDecimal(0.00));
-			costRatio = new BigDecimal(1.00);
-		} else {
-			if (vo.getWarehouse() == 0 || vo.getWarehouse() == 2) {
-				
-				costRatio = costAmount.divide(vo.getTotalAmount(),4,BigDecimal.ROUND_HALF_EVEN);
-			} else if (vo.getWarehouse() == 1) {
-				
-				costRatio = costAmount.divide(vo.getTotalAmount(),4,BigDecimal.ROUND_HALF_EVEN);
-
-			}
-		}
-
 		return costRatio;
 	}
 	
@@ -385,15 +348,15 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		BigDecimal costRatio = calculateCostRatio(vo);
 		
 		//根据仓库业务范围区分是男科还是蜂蜜，暂时注释
-		/*WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
 		if(warehouseVO != null){
 			if(warehouseVO.getBizRange()==1){
 				//男科
-				===============================================================================
+				/*===============================================================================
 				 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
 				 * 北京仓库成本超过：对于业务员订单性质为热线 、回访且成本比例小于24%则不超 ；订单性质为复购且成本比例小于26%则不超
 				 * ===============================================================================
-				 
+				*/ 
 				
 				if ("热线".equals(vo.getOrderNature()) || "回访".equals(vo.getOrderNature())) {
 					if (new BigDecimal(0.16).compareTo(costRatio) < 0) {
@@ -410,31 +373,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					return false;
 				}
 			}
-		}*/
-		
-		
-		/*===============================================================================
-		 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
-		 * 北京仓库成本超过：对于业务员订单性质为热线 、回访且成本比例小于24%则不超 ；订单性质为复购且成本比例小于26%则不超
-		 * ===============================================================================
-		 */
-		
-		if ("热线".equals(vo.getOrderNature()) || "回访".equals(vo.getOrderNature())) {
-			if ((vo.getWarehouse() == 0 || vo.getWarehouse() == 2) && new BigDecimal(0.16).compareTo(costRatio) < 0) {
-				return false;
-			} else if (vo.getWarehouse() == 1 && new BigDecimal(0.24).compareTo(costRatio) < 0) {
-				return false;
-			}
-		} else  {
-			if ((vo.getWarehouse() == 0 || vo.getWarehouse() == 2) && new BigDecimal(0.18).compareTo(costRatio) < 0) {
-				return false;
-			} else if (vo.getWarehouse() == 1 && new BigDecimal(0.26).compareTo(costRatio) < 0) {
-				return false;
-			}
 		}
-		
-		
-		
 
 		return true;
 	}
@@ -458,14 +397,14 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			int todayInt = Integer.parseInt(today);
 			Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
 			int deliverDateInt = Integer.parseInt(new SimpleDateFormat("yyMMdd").format(dbvo.getDeliverDate()));
-			if("004".equals(getCurrentUserRoleCode())){
+			RoleVO roleVO = getCurrentUserRole();
+			if (roleVO != null && roleVO.getLevel()==3) {
 				if(todayInt == deliverDateInt){//发货时间是今天
 					if(new Date().getTime()>todayLockTime.getTime()){
 						return false;
 					}
 				}else if(todayInt > deliverDateInt){//发货时间今天之前
-					return false;
-					
+					return false;	
 				}
 			}
 		}
@@ -684,12 +623,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		
 	}
 	
-	private String getCurrentUserRoleCode() throws Exception{
+	private RoleVO getCurrentUserRole() throws Exception{
 		//当前用户
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
 		RoleVO roleVO = roleService.findVOById(user.getRoleId(), RoleVO.class);
-		return roleVO.getRoleCode();
+		return roleVO;
 	}
 	
 	@Override
@@ -1277,8 +1216,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			String outAttributeNames = (String) map.get("outAttributeNames");
 			sql.append("Select "+outAttributeNames+" from order_info where 1=1");
 		}
-		
-		String roleCode = getCurrentUserRoleCode();
+		RoleVO roleVO = getCurrentUserRole();
+		//String roleCode = getCurrentUserRoleCode();
 		/*String roleCode = "001";*/		
 		if (map != null) {
 			if (map.containsKey("optionType")) {
@@ -1291,9 +1230,10 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					throw new Exception("参数optionType数据类型不正确!");	
 				}
 			
-				if (optionType == 1 && !"004".equals(roleCode)) {
+				/*if (optionType == 1 && !"004".equals(roleCode)) {*/
+				if(roleVO != null && roleVO.getLevel()<=3){
 					// 管理员或二级管理员当天10点以后确认当天订单
-					sql.append(" and date(deliver_date) =curdate()");
+					sql.append(" and date(deliver_date) =curdate()");	
 				}
 			}
 			if (map.containsKey("keyWords")) {
@@ -1435,13 +1375,18 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 			
 		}
-		if ("004".equals(roleCode)) {
-			// 业务员,今天之前的订单只能查看发货日期自己近两月的
-			String userId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser"))
-					.getId();
-			sql.append(" and user_id = '" + userId + "'");
-			/*sql.append(
-					" and (deliver_date between date_sub(curdate(),interval 2 month) and (select max(deliver_date) from order_info))");*/
+		if(roleVO != null){
+			if(roleVO.getLevel()==3){
+				// 业务员,今天之前的订单只能查看发货日期自己近两月的
+				String userId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser"))
+						.getId();
+				sql.append(" and user_id = '" + userId + "'");
+				/*sql.append(
+						" and (deliver_date between date_sub(curdate(),interval 2 month) and (select max(deliver_date) from order_info))");*/
+			}else if(roleVO.getLevel()==2){
+				//二级管理员
+				sql.append(" and user_id in (select us.id from user_info us left join role_info ro on us.role_id=ro.id where ro.biz_range="+roleVO.getBizRange()+")");
+			}
 		}
 		
 		return sql;
@@ -1943,22 +1888,38 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
 		if(map.containsKey("phone")){
-			if(user.getRoleCode().equals("004")){
+			if(user.getRoleLevel()==3){
 				throw new Exception("业务员只能查看自己的订单数据！");
 			}else{
 				String phone = (String) map.get("phone");
-				sql.append(" and user_id =(select id from user_info where phone='"+phone+"')");
+				if(user.getRoleLevel()==2){
+					//二级管理员,sql只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
+					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"'"
+									+ " and us.role_id in ("
+										+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+")))");
+				}
+				
 			}
+			
 		}else{
 			String userId = user.getId();
 			if(map.containsKey("userId")){
-				if(user.getRoleCode().equals("004")){
+				if(user.getRoleLevel()==3){
 					throw new Exception("业务员只能查看自己的订单数据！");
 				}else{
 					userId = (String) map.get("userId");
+					if(user.getRoleLevel()==2){
+						//二级管理员,sql.append只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
+						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"
+										+ " and us.role_id in ("
+											+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+")))");
+					}
+					
 				}
+			}else{
+				sql.append(" and user_id ='"+userId+"'");
 			}
-			sql.append(" and user_id ='"+userId+"'");
+			
 			
 		}
 		sql.append(" and order_nature is not null ");

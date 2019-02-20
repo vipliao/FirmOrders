@@ -21,6 +21,8 @@ public class UserVO extends SuperVO {
 	private String roleId;
 	private String roleName;
 	private String roleCode;
+	private int roleLevel;
+	private int roleBizRange;
 	private int isFrozen;
 	private List<UserOwnResourceVO> childrenDetail = new ArrayList<UserOwnResourceVO>(0);
 	
@@ -93,7 +95,17 @@ public class UserVO extends SuperVO {
 	public void setRoleCode(String roleCode) {
 		this.roleCode = roleCode;
 	}
-	
-	
+	public int getRoleLevel() {
+		return roleLevel;
+	}
+	public void setRoleLevel(int roleLevel) {
+		this.roleLevel = roleLevel;
+	}
+	public int getRoleBizRange() {
+		return roleBizRange;
+	}
+	public void setRoleBizRange(int roleBizRange) {
+		this.roleBizRange = roleBizRange;
+	}
 	
 }

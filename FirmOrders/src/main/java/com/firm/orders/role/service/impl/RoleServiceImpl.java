@@ -3,6 +3,7 @@ package com.firm.orders.role.service.impl;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -48,5 +49,19 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleEntity, RoleVO> impleme
 	      Integer total = (Integer)this.jdbcTemplate.queryForObject(totalSql, Integer.class);
 	      return total.intValue();
 	}
-
+	
+	@Override
+	public RoleVO save(RoleVO vo, Class<RoleEntity> clazzE, Class<RoleVO> clazzV) throws Exception {
+		String sql = "select max(role_code) from role_info";
+		List<String> list= jdbcTemplate.queryForList(sql, String.class);
+		if(CollectionUtils.isEmpty(list)){
+			vo.setRoleCode("001");
+		}else{
+			int s = Integer.parseInt(list.get(0));
+			++s;
+			String reslut = s > 10 ? (s > 100 ? s + "" : "0" + s) : "00" + s; 
+			vo.setRoleCode(reslut);
+		}
+		return super.save(vo, clazzE, clazzV);
+	}
 }

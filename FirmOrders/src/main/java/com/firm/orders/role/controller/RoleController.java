@@ -11,11 +11,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.firm.orders.base.utils.JsonBackData;
+import com.firm.orders.role.entity.RoleEntity;
 import com.firm.orders.role.service.IRoleService;
 import com.firm.orders.role.vo.RoleVO;
 @Controller
@@ -77,5 +80,45 @@ public class RoleController {
 		return back;
 	}
 	
+	@RequestMapping(value = "save", method = RequestMethod.POST)
+	@ResponseBody
+	public JsonBackData save(@RequestBody RoleVO vo) {
+		JsonBackData back = new JsonBackData();
+		try {
+
+			RoleVO reVO= service.save(vo, RoleEntity.class, RoleVO.class);
+			back.setBackData(reVO);
+			back.setSuccess(true);
+			back.setBackMsg("用户角色信息保存成功!");
+
+		} catch (Exception e) {
+			logger.error("用户角色信息保存方法：", e);
+			back.setSuccess(false);
+			back.setBackMsg("用户角色信息保存失败," + e.getMessage());
+		}
+		return back;
+	}
+	
+	@RequestMapping(value = "delete",method = RequestMethod.POST)
+	@ResponseBody
+	public JsonBackData delete(@RequestBody Map<String,Object> param) {
+		JsonBackData back = new JsonBackData();
+		try {	
+			if(!param.containsKey("id") ){
+				throw new Exception("id不能为空!");
+			}
+			
+			String id = (String) param.get("id");
+			service.delete(id);
+			back.setSuccess(true);
+			back.setBackMsg("删除角色信息成功！");
+			
+		}catch (Exception e) {
+			logger.error("删除角色信息方法：", e);
+			back.setSuccess(false);
+			back.setBackMsg("删除角色信息失败,"+e.getMessage());
+		}
+		return back;
+	}
 	
 }
