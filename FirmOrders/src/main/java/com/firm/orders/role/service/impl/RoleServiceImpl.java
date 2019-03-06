@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,6 +19,7 @@ import com.firm.orders.base.service.impl.BaseServiceImpl;
 import com.firm.orders.role.entity.RoleEntity;
 import com.firm.orders.role.service.IRoleService;
 import com.firm.orders.role.vo.RoleVO;
+import com.firm.orders.user.vo.UserVO;
 
 @Service
 public class RoleServiceImpl extends BaseServiceImpl<RoleEntity, RoleVO> implements IRoleService{
@@ -31,7 +35,17 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleEntity, RoleVO> impleme
 			
 		}
 		sql.append(" and role_code <> '001'");
-		sql.append(" order by create_time desc");
+		UserVO userVO = getCurrentUser();
+		if(userVO !=null) {
+			if(userVO.getRoleBizRange()>0) {
+				sql.append(" and biz_range ="+userVO.getRoleBizRange());
+			}
+			if(userVO.getRoleLevel()>1) {
+				sql.append(" and level >"+userVO.getRoleLevel());
+			}
+			
+		}
+		sql.append(" order by role_code ASC,create_time desc");
 		int total =  getTotalCount(sql.toString());
 		if(pageable != null){
 			sql.append(" limit " + pageable.getPageNumber() * pageable.getPageSize() + "," + pageable.getPageSize());
@@ -48,6 +62,13 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleEntity, RoleVO> impleme
 	      String totalSql = "select count(1) from (" + sql + ") t";
 	      Integer total = (Integer)this.jdbcTemplate.queryForObject(totalSql, Integer.class);
 	      return total.intValue();
+	}
+	
+	private UserVO getCurrentUser() throws Exception{
+		//当前用户
+		Subject subject = SecurityUtils.getSubject();
+		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
+		return user;
 	}
 	
 	@Override

@@ -174,7 +174,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		}
 		if (getCurrentUser().getRoleLevel() == 3) {//三级管理员
 			sql.append(" and r.biz_range= " + getCurrentUser().getRoleBizRange());
-			sql.append(" and u.region= '" + getCurrentUser().getRegion()+"'");
+			sql.append(" and u.region like '" + getCurrentUser().getRegion()+"%'");
 		}
 		if (getCurrentUser().getRoleLevel() == 4) {//业务员
 			sql.append(" and u.id='" + getCurrentUser().getId() + "'");
@@ -276,10 +276,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 				List<String> delAIds= new ArrayList<>();
 				List<String> addAIds = new ArrayList<>();
 				for(AssessoryVO avo:vo1.getAssessorys()){
-					if(avo.getDr()==1){
-						delAIds.add(avo.getId());
-					}else if(avo.getBusinessId() ==null || avo.getBusinessId().equals("")){
-						addAIds.add(avo.getId());
+					if(avo !=null) {
+						if(avo.getDr()==1){
+							delAIds.add(avo.getId());
+						}else if(avo.getBusinessId() ==null || avo.getBusinessId().equals("")){
+							addAIds.add(avo.getId());
+						}
 					}
 				}
 				if(delAIds !=null && delAIds.size()>0){
@@ -607,7 +609,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			if(userVO.getRoleLevel()==3){
 				//三级管理员
 				sql.append(" and user_id in (select us.id from user_info us,"
-						+ "role_info role where role.biz_range="+userVO.getRoleBizRange()+" and us.region='"+userVO.getRegion()+"')");
+						+ "role_info role where role.biz_range="+userVO.getRoleBizRange()+" and us.region like '"+userVO.getRegion()+"%')");
 				
 			}
 			if(userVO.getRoleLevel()==4){
@@ -695,7 +697,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		sql.append(" and role.biz_range="+userVO.getRoleBizRange());
 		if(userVO.getRoleLevel()==3) {
 			//三级管理员
-			sql.append(" and us.region='"+userVO.getRegion()+"'");	
+			sql.append(" and us.region like '"+userVO.getRegion()+"%'");	
 		}
 		sql.append(" group by  us.region");
 		List<UserResourceReportVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<UserResourceReportVO>(UserResourceReportVO.class));
