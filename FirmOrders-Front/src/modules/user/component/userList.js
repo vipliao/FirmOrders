@@ -57,7 +57,7 @@ class Index extends React.Component {
         key: 'region',
       }, {
         title: '用户角色',
-        width: 120,
+        width: 150,
         align: 'center',
         dataIndex: 'roleId',
         key: 'roleId',
