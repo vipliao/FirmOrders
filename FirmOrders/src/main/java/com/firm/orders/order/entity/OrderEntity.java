@@ -30,7 +30,7 @@ public class OrderEntity extends SuperEntity{
 	@Column(name="order_code")
 	private String orderCode;
 	
-	private int warehouse;
+	private String warehouse;
 	
 	@Column(name="order_nature")
 	private String orderNature;
@@ -133,11 +133,11 @@ public class OrderEntity extends SuperEntity{
 		this.orderCode = orderCode;
 	}
 
-	public int getWarehouse() {
+	public String getWarehouse() {
 		return warehouse;
 	}
 
-	public void setWarehouse(int warehouse) {
+	public void setWarehouse(String warehouse) {
 		this.warehouse = warehouse;
 	}
 

@@ -12,6 +12,7 @@ public class SenderVO extends SuperVO{
 	private String serderPhone;
 	private String senderAddr;
 	private int isEnabled;
+	private int bizRange;
 	
 	public String getSenderName() {
 		return senderName;
@@ -36,6 +37,12 @@ public class SenderVO extends SuperVO{
 	}
 	public void setIsEnabled(int isEnabled) {
 		this.isEnabled = isEnabled;
+	}
+	public int getBizRange() {
+		return bizRange;
+	}
+	public void setBizRange(int bizRange) {
+		this.bizRange = bizRange;
 	}
 	
 	

@@ -23,6 +23,8 @@ public class SenderEntity extends SuperEntity{
 	private String senderAddr;
 	@Column(name="is_enabled")
 	private int isEnabled;
+	@Column(name="biz_range")
+	private int bizRange;
 	
 	
 	public String getSenderName() {
@@ -49,7 +51,11 @@ public class SenderEntity extends SuperEntity{
 	public void setIsEnabled(int isEnabled) {
 		this.isEnabled = isEnabled;
 	}
+	public int getBizRange() {
+		return bizRange;
+	}
+	public void setBizRange(int bizRange) {
+		this.bizRange = bizRange;
+	}
 	
-	
-
 }

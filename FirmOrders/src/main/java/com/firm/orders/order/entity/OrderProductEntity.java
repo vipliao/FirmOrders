@@ -37,7 +37,7 @@ public class OrderProductEntity extends SuperEntity{
 	private BigDecimal productCostPrice;
 	
 	@Column(name="product_warehouse")
-	private int productWarehouse;
+	private String productWarehouse;
 
 	public String getProductId() {
 		return productId;
@@ -95,14 +95,13 @@ public class OrderProductEntity extends SuperEntity{
 		this.productCostPrice = productCostPrice;
 	}
 
-	public int getProductWarehouse() {
+	public String getProductWarehouse() {
 		return productWarehouse;
 	}
 
-	public void setProductWarehouse(int productWarehouse) {
+	public void setProductWarehouse(String productWarehouse) {
 		this.productWarehouse = productWarehouse;
 	}
 
-	
 
 }

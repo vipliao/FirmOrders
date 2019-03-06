@@ -18,7 +18,10 @@ public class OrderVO extends SuperVO{
 	private String userId;
 	private String userName;
 	private String orderCode;
-	private int warehouse;
+	private String warehouse;
+	
+	private String warehouseName;
+	
 	private String orderNature;
 	private String serderPhone;
 	private String senderAddr;
@@ -79,11 +82,11 @@ public class OrderVO extends SuperVO{
 		this.orderCode = orderCode;
 	}
 
-	public int getWarehouse() {
+	public String getWarehouse() {
 		return warehouse;
 	}
 
-	public void setWarehouse(int warehouse) {
+	public void setWarehouse(String warehouse) {
 		this.warehouse = warehouse;
 	}
 
@@ -271,5 +274,11 @@ public class OrderVO extends SuperVO{
 		this.expressCompany = expressCompany;
 	}
 
+	public String getWarehouseName() {
+		return warehouseName;
+	}
 
+	public void setWarehouseName(String warehouseName) {
+		this.warehouseName = warehouseName;
+	}
 }

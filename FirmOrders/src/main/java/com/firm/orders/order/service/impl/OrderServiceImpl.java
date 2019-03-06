@@ -16,9 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -32,6 +30,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.firm.orders.base.entity.BaseEntity;
@@ -48,7 +48,6 @@ import com.firm.orders.order.vo.OrderProductVO;
 import com.firm.orders.order.vo.OrderVO;
 import com.firm.orders.product.vo.ProductVO;
 import com.firm.orders.role.service.IRoleService;
-import com.firm.orders.role.vo.RoleVO;
 import com.firm.orders.user.vo.UserVO;
 import com.firm.orders.warehouse.service.IWarehouseService;
 import com.firm.orders.warehouse.vo.WarehouseVO;
@@ -67,6 +66,26 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	@Transactional
 	@Override
 	public OrderVO save(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception {
+		OrderEntity entity = bulidEntity(vo, clazzE, clazzV);
+		if(entity.getId() !=null && !entity.getId().equals("")){
+			String mainDelSql = "delete from order_info where id = '" + entity.getId() + "'";
+			jdbcTemplate.update(mainDelSql);
+		}
+		List<OrderProductVO> reDetailVOs  = saveOrderProduct(entity.getId(),vo.getWarehouse(),vo.getChildrenDetail());
+		List<OrderEntity> saveList = new ArrayList<>();
+		saveList.add(entity);
+		List<OrderEntity> newList = bathSave(saveList);
+		OrderVO reVO = handleSingleE2V(newList.get(0), OrderVO.class);		
+		/*List<OrderVO> list = new ArrayList<>();
+		list.add(reVO);
+		reVO = queryOrderProducts(list).get(0);*/
+		reVO.setChildrenDetail(reDetailVOs);
+		return reVO;
+
+	}
+	
+	@Transactional
+	private OrderEntity bulidEntity(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception{
 		if (vo == null) {
 			throw new Exception("没有数据!");
 		}
@@ -76,15 +95,18 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if(vo.getDeliverDate() == null || vo.getDeliverDate().toString().equals("")){
 			throw new Exception("订单发货时间不能为空!");
 		}
-		RoleVO roleVO  = getCurrentUserRole();
-		if(roleVO != null){
-			WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		UserVO userVO  = getCurrentUser();
+		if(userVO != null){
+			WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 			if(warehouseVO != null){
-				if(roleVO.getBizRange() !=  warehouseVO.getBizRange()){
+				if(userVO.getRoleLevel()>1 &&  userVO.getRoleBizRange() !=  warehouseVO.getBizRange()){
 					throw new Exception("没有权限添加"+warehouseVO.getName()+"仓库的订单!");
 				}
 			}
-			if(roleVO.getLevel()==3){
+			if(userVO.getRoleLevel()>=3 && !userVO.getRegion().equals(vo.getRegion())){
+				throw new Exception("没有权限添加"+userVO.getRegion()+"区域的订单!");
+			}
+			if(userVO.getRoleLevel()==4){//业务员
 				//当天时间过了10点,不能新增发货时间为今天的订单
 				String deliverDateStr = new SimpleDateFormat("yyMMdd").format(vo.getDeliverDate());
 				String today = new SimpleDateFormat("yyMMdd").format(new Date());
@@ -96,6 +118,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					throw new Exception("发货日期为今天之前的订单不处于业务员可操作的状态!");
 				}
 			}
+			
 		}
 		
 		if(vo.getId()!=null){
@@ -113,6 +136,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		vo.setCostRatio(calculateCostRatio(vo));
 		vo.setIsOverCost(isOverCost(vo)?0:1);
+		vo.setRegion(vo.getRegion().trim());
 		OrderEntity entity = handleSingleV2E(vo, OrderEntity.class);
 		if (entity.getId() == null || entity.getId().equals("")) {
 			((SuperEntity) entity).setId(JavaUuidGenerater.generateUuid());
@@ -125,25 +149,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			((SuperEntity) entity).setUpdateTime(new Timestamp(System.currentTimeMillis()));
 		
 		}
-		if(entity.getId() !=null && !entity.getId().equals("")){
-			String mainDelSql = "delete from order_info where id = '" + entity.getId() + "'";
-			jdbcTemplate.update(mainDelSql);
-		}
-	
-		List<OrderProductVO> reDetailVOs  = saveOrderProduct(entity.getId(),Integer.toString(vo.getWarehouse()),vo.getChildrenDetail());
-		List<OrderEntity> saveList = new ArrayList<>();
-		saveList.add(entity);
-		List<OrderEntity> newList = bathSave(saveList);
-		OrderVO reVO = handleSingleE2V(newList.get(0), OrderVO.class);		
-		/*List<OrderVO> list = new ArrayList<>();
-		list.add(reVO);
-		reVO = queryOrderProducts(list).get(0);*/
-		reVO.setChildrenDetail(reDetailVOs);
-		return reVO;
-
+		
+		return entity;
 	}
-	
-
 	
 
 	@SuppressWarnings("unchecked")
@@ -288,9 +296,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		BigDecimal costAmount =new BigDecimal(0.00);
 		
 		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
-		WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 		if(warehouseVO != null){
-			if(warehouseVO.getBizRange()==0){
+			if(warehouseVO.getBizRange()==1){
 				//蜂蜜
 				
 				 /* ==========================广西仓库=======================================
@@ -314,7 +322,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
 				}
 				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
-			}else if(warehouseVO.getBizRange()==1){
+			}else if(warehouseVO.getBizRange()==2){
 				//男科
 				
 				 /* ==========================武汉仓库=======================================
@@ -348,9 +356,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		BigDecimal costRatio = calculateCostRatio(vo);
 		
 		//根据仓库业务范围区分是男科还是蜂蜜，暂时注释
-		WarehouseVO warehouseVO = warehouseService.findVOById(vo.getWarehouse()+"", WarehouseVO.class);
+		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 		if(warehouseVO != null){
-			if(warehouseVO.getBizRange()==1){
+			if(warehouseVO.getBizRange()==2){
 				//男科
 				/*===============================================================================
 				 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
@@ -367,9 +375,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						return false;
 					} 
 				}
-			}else if(warehouseVO.getBizRange()==0){
+			}else if(warehouseVO.getBizRange()==1){
 				//蜂蜜
-				if (new BigDecimal(0.22).compareTo(costRatio) < 0) {
+				if (new BigDecimal(0.19).compareTo(costRatio) < 0) {
 					return false;
 				}
 			}
@@ -397,8 +405,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			int todayInt = Integer.parseInt(today);
 			Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
 			int deliverDateInt = Integer.parseInt(new SimpleDateFormat("yyMMdd").format(dbvo.getDeliverDate()));
-			RoleVO roleVO = getCurrentUserRole();
-			if (roleVO != null && roleVO.getLevel()==3) {
+			UserVO userVO = getCurrentUser();
+			if (userVO != null && userVO.getRoleLevel()==4) {
 				if(todayInt == deliverDateInt){//发货时间是今天
 					if(new Date().getTime()>todayLockTime.getTime()){
 						return false;
@@ -411,13 +419,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		return true;
 	}
 	
-	private String generaterBillCode(int warehouse,Date deliverDate) throws Exception{
+	private String generaterBillCode(String warehouse,Date deliverDate) throws Exception{
 		String prefix = "D";
 		int digits = 4;
-		if(warehouse ==0){
+		if(warehouse.equals("001")){
 			prefix = "S91";
 			digits = 3;
-		}else if (warehouse ==1){
+		}else if (warehouse.equals("002")){
 			prefix = "S7001";
 			digits=4;
 		}
@@ -442,7 +450,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		String idList = orderIds.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
 				.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
-		String sql = "select * from order_product where order_id in "+idList;
+		String sql = "select product.*,warehouse.name productWarehouseName from order_product product left join warehouse_info warehouse on warehouse.code = product.product_warehouse where order_id in "+idList;
 		List<OrderProductVO> list= jdbcTemplate.query(sql, new BeanPropertyRowMapper<OrderProductVO>(OrderProductVO.class));
 		if (list != null && list.size() > 0) {
 			for (OrderVO b : orders) {
@@ -504,18 +512,22 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			if(productIds ==null || productIds.isEmpty()){
 				throw new Exception("所选产品不存在!");
 			}else{
+				List<WarehouseVO> warehouses = warehouseService.queryList(null, null).getContent();
 				for(ProductVO vo:productList){
-					if(vo.getWareHouse() != Integer.parseInt(wareHouse)){
-						String wareHouseName = "";
-						if(wareHouse.equals("0")){
-							wareHouseName="广西";
-						}else if(wareHouse.equals("1")){
-							wareHouseName="北京";
-						}else if(wareHouse.equals("2")){
-							wareHouseName="武汉2";
+					if(!vo.getWareHouse().equals(wareHouse)){
+						if(!CollectionUtils.isEmpty(warehouses)) {
+							String wareHouseName = "";
+							for(WarehouseVO warehouse:warehouses) {
+								if(wareHouse.equals(warehouse.getCode())){
+									wareHouseName = warehouse.getName();
+									break;
+								}
+							}
+							throw new Exception("所选存在产品不属于订单所属仓库,订单所属仓库为"+wareHouseName);
 						}
-						throw new Exception("所选存在产品不属于订单所属仓库,订单所属仓库为"+wareHouseName);
 					}
+					
+					
 				}
 			}
 			if(delIds!=null && delIds.size()>0){
@@ -592,7 +604,11 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					}else{
 						sql.append("#"+null+"#,");
 					}
-					sql.append(vo.getProductWarehouse()+"");
+					if(null !=vo.getOrderId()){
+						sql.append("'"+vo.getProductWarehouse()+"'");
+					}else{
+						sql.append("#"+null+"#");
+					}
 					sql.append(")");
 					sqls.add(sql.toString().replace("#", ""));
 					
@@ -615,6 +631,17 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		List<OrderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<OrderVO>(OrderVO.class));
 		if (list != null && list.size() > 0) {
+			List<WarehouseVO> warehouses = warehouseService.queryList(null, null).getContent();
+			if(!CollectionUtils.isEmpty(warehouses)) {
+				for(WarehouseVO warehouseVO : warehouses){
+					for(OrderVO orderVO : list) {
+						if(orderVO.getWarehouse().equals(warehouseVO.getCode())){
+							orderVO.setWarehouseName(warehouseVO.getName());
+						}
+					}
+					warehouseVO.getName();
+				}
+			}
 			
 			queryOrderProducts(list);
 			return new PageImpl<OrderVO>(list, pageable, pageable != null ? total : (long) list.size());
@@ -623,12 +650,11 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		
 	}
 	
-	private RoleVO getCurrentUserRole() throws Exception{
+	private UserVO getCurrentUser() throws Exception{
 		//当前用户
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
-		RoleVO roleVO = roleService.findVOById(user.getRoleId(), RoleVO.class);
-		return roleVO;
+		return user;
 	}
 	
 	@Override
@@ -952,6 +978,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		queryOrderProducts(list);
 		/*List<Map<String,Object>> wuhanOrders =new ArrayList<>();
 		List<Map<String,Object>> beijingOrders =new ArrayList<>();*/
+		List<WarehouseVO> warehouses = warehouseService.queryList(null, null).getContent();
 		List<Map<String,Object>> orders =new ArrayList<>();
 		for(OrderVO order:list){
 			Map<String,Object> orderMap = BeanHelper.beanToMap(order);
@@ -1002,34 +1029,22 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}else if(order.getExpressState()==5){
 				orderMap.put("expressState", "签收");
 			}
-			if(order.getWarehouse()==0){
-				orderMap.put("mailNumber", 1);
-				orderMap.put("mailGoods", "食品"+order.getOrderCode());
-			}else if(order.getWarehouse()==1){
-				orderMap.put("receiverName_1", order.getReceiverName());
-				if(order.getExpressCompany()==0){
-					orderMap.put("sellerMemo", "KD[顺丰陆运]");
-				}else if(order.getExpressCompany()==1){
-					if(order.getIsForeignExpress()==1){
-						orderMap.put("sellerMemo", "KD[EMS国际]");
-					}else{
-						orderMap.put("sellerMemo", "KD[EMS快递包裹]");
-					}
-				}
-				if(order.getCollectionAmout().intValue()==0){
-					orderMap.put("payTime", order.getCreateTime());
-					if(order.getOrderState()<2){
-						orderMap.remove("orderSate");
-						orderMap.put("orderSate", "买家已付款，等待卖家发货");
-					}
-					
-				}else if (order.getCollectionAmout().intValue()!=0){
-					if(order.getOrderState()<2){
-						orderMap.remove("orderSate");
-						orderMap.put("orderSate", "货到付款");
-					}
-				}
-			}
+			/*
+			 * if(order.getWarehouse()==0){ orderMap.put("mailNumber", 1);
+			 * orderMap.put("mailGoods", "食品"+order.getOrderCode()); }else
+			 * if(order.getWarehouse()==1){ orderMap.put("receiverName_1",
+			 * order.getReceiverName()); if(order.getExpressCompany()==0){
+			 * orderMap.put("sellerMemo", "KD[顺丰陆运]"); }else
+			 * if(order.getExpressCompany()==1){ if(order.getIsForeignExpress()==1){
+			 * orderMap.put("sellerMemo", "KD[EMS国际]"); }else{ orderMap.put("sellerMemo",
+			 * "KD[EMS快递包裹]"); } } if(order.getCollectionAmout().intValue()==0){
+			 * orderMap.put("payTime", order.getCreateTime()); if(order.getOrderState()<2){
+			 * orderMap.remove("orderSate"); orderMap.put("orderSate", "买家已付款，等待卖家发货"); }
+			 * 
+			 * }else if (order.getCollectionAmout().intValue()!=0){
+			 * if(order.getOrderState()<2){ orderMap.remove("orderSate");
+			 * orderMap.put("orderSate", "货到付款"); } } }
+			 */
 			
 			List<OrderProductVO>  details = order.getChildrenDetail();
 			if(details != null && details.size()>0){
@@ -1058,15 +1073,19 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					
 					Map<String,Object> newOrderMap =new HashMap<>();
 					newOrderMap.putAll(orderMap);
-					if(order.getWarehouse()==0){
-						newOrderMap.put("warehouse", "广西");
+					if(warehouses!=null){
+						for(WarehouseVO warehouse:warehouses) {
+							if(warehouse.getCode().equals(order.getWarehouse())){
+								newOrderMap.put("warehouse", warehouse.getName());
+								break;
+							}
+						}
 					}
-					if(order.getWarehouse()==1){
-						newOrderMap.put("warehouse", "北京");
-					}
-					if(order.getWarehouse()==2){
-						newOrderMap.put("warehouse", "武汉2");
-					}
+					/*
+					 * if(order.getWarehouse()==0){ newOrderMap.put("warehouse", "广西"); }
+					 * if(order.getWarehouse()==1){ newOrderMap.put("warehouse", "北京"); }
+					 * if(order.getWarehouse()==2){ newOrderMap.put("warehouse", "武汉2"); }
+					 */
 					//newOrderMap.put("warehouse", "北京");
 					newOrderMap.put("orderCode_child",order.getOrderCode());
 					newOrderMap.put("productBarCode",productBarCode);
@@ -1216,7 +1235,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			String outAttributeNames = (String) map.get("outAttributeNames");
 			sql.append("Select "+outAttributeNames+" from order_info where 1=1");
 		}
-		RoleVO roleVO = getCurrentUserRole();
+		UserVO userVO = getCurrentUser();
 		//String roleCode = getCurrentUserRoleCode();
 		/*String roleCode = "001";*/		
 		if (map != null) {
@@ -1231,8 +1250,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				}
 			
 				/*if (optionType == 1 && !"004".equals(roleCode)) {*/
-				if(roleVO != null && roleVO.getLevel()<=3){
-					// 管理员或二级管理员当天10点以后确认当天订单
+				if(userVO != null && userVO.getRoleLevel()<=3){
+					// 管理员或二级管理员或3级管理员当天10点以后确认当天订单
 					sql.append(" and date(deliver_date) =curdate()");	
 				}
 			}
@@ -1375,17 +1394,24 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 			
 		}
-		if(roleVO != null){
-			if(roleVO.getLevel()==3){
+		if(userVO != null){
+			if(userVO.getRoleLevel()==4){
 				// 业务员,今天之前的订单只能查看发货日期自己近两月的
 				String userId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser"))
 						.getId();
 				sql.append(" and user_id = '" + userId + "'");
+				sql.append(" and warehouse in (select code from warehouse_info where biz_range="+userVO.getRoleBizRange()+")");
 				/*sql.append(
 						" and (deliver_date between date_sub(curdate(),interval 2 month) and (select max(deliver_date) from order_info))");*/
-			}else if(roleVO.getLevel()==2){
+			}else if(userVO.getRoleLevel()==2){
 				//二级管理员
-				sql.append(" and user_id in (select us.id from user_info us left join role_info ro on us.role_id=ro.id where ro.biz_range="+roleVO.getBizRange()+")");
+				//sql.append(" and user_id in (select us.id from user_info us left join role_info ro on us.role_id=ro.id where ro.biz_range="+userVO.getRoleBizRange()+")");
+				sql.append(" and warehouse in (select code from warehouse_info where biz_range="+userVO.getRoleBizRange()+")");
+			}else if(userVO.getRoleLevel()==3) {
+				//三级管理员
+				//sql.append(" and user_id in (select us.id from user_info us left join role_info ro on us.role_id=ro.id where ro.biz_range="+userVO.getRoleBizRange()+")");
+				sql.append(" and warehouse in (select code from warehouse_info where biz_range="+userVO.getRoleBizRange()+")");
+				sql.append(" and region like '"+userVO.getRegion().trim()+"%'");
 			}
 		}
 		
@@ -2069,6 +2095,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		List<Map<String, Object>> reDatas = new ArrayList<>();
 		reDatas = regionOrder(map);
+		if(CollectionUtils.isEmpty(reDatas)) {
+			throw new Exception("没有查询到数据！");
+		}
 		for(int i=0;i<reDatas.size();i++){
 			String value = (String) reDatas.get(i).get("orderNature");
 			if(value.equals("合计")){
@@ -2079,5 +2108,33 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		
 	}
 
+	@Transactional
+	public Object  updateOrders(Map<String,Object> map) throws Exception {
+		String beginDate =(String) map.get("beginDate");
+		String endDate =(String) map.get("endDate");
+		String sql = "select * from order_info where warehouse='001' and create_time between '"+beginDate+" 00:00:00' and '"+endDate+" 00:00:00'";
+		List<OrderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<OrderVO>(OrderVO.class));
+		if(CollectionUtils.isNotEmpty(list)) {
+			queryOrderProducts(list);
+			List<OrderEntity> enList = new ArrayList<OrderEntity>();
+			List<String> ids = new ArrayList<String>();
+			for(OrderVO order : list) {
+				order.setCostRatio(calculateCostRatio(order));
+				order.setIsOverCost(isOverCost(order)?0:1);
+				OrderEntity entity = handleSingleV2E(order, OrderEntity.class);
+				ids.add(entity.getId());
+				enList.add(entity);
+			}
+			if(CollectionUtils.isNotEmpty(ids)){
+				String idsStr = ids.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
+						.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
+				String mainDelSql = "delete from order_info where id in "+idsStr;
+				jdbcTemplate.update(mainDelSql);
+			}
+			List<OrderEntity> newEnList = bathSave(enList);
+			return newEnList;
+		}
+		return null;
+	}
 	
 }

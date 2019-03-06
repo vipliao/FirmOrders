@@ -17,7 +17,7 @@ public class ProductEntity extends SuperEntity{
 	private static final long serialVersionUID = 1L;
 	
 	@Column(name="warehouse")
-	private int wareHouse;
+	private String wareHouse;
 	private String name;
 	@Column(name="cost_price")
 	private BigDecimal costPrice;
@@ -26,10 +26,10 @@ public class ProductEntity extends SuperEntity{
 	private String unit;
 	
 	
-	public int getWareHouse() {
+	public String getWareHouse() {
 		return wareHouse;
 	}
-	public void setWareHouse(int wareHouse) {
+	public void setWareHouse(String wareHouse) {
 		this.wareHouse = wareHouse;
 	}
 	public String getName() {

@@ -11,17 +11,20 @@ public class ProductVO extends SuperVO{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private int wareHouse;
+	private String wareHouse;
+	private String wareHouseName;
+	
 	private String name;
 	private BigDecimal costPrice;
 	private String barCode;
 	private String unit;
 
 	
-	public int getWareHouse() {
+	
+	public String getWareHouse() {
 		return wareHouse;
 	}
-	public void setWareHouse(int wareHouse) {
+	public void setWareHouse(String wareHouse) {
 		this.wareHouse = wareHouse;
 	}
 	public String getName() {
@@ -48,4 +51,12 @@ public class ProductVO extends SuperVO{
 	public void setUnit(String unit) {
 		this.unit = unit;
 	}
+	public String getWareHouseName() {
+		return wareHouseName;
+	}
+	public void setWareHouseName(String wareHouseName) {
+		this.wareHouseName = wareHouseName;
+	}
+	
+	
 }

@@ -15,5 +15,7 @@ public interface IWarehouseService extends IBaseService<WarehouseEntity,Warehous
 	Page<WarehouseVO> queryList(Pageable pageable, Map<String, Object> map) throws Exception;
 
 	List<WarehouseVO> save(List<WarehouseVO> list) throws Exception;
+	
+	WarehouseVO findVOByCode(String code) throws Exception;
 
 }

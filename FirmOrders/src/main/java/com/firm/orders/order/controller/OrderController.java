@@ -316,4 +316,23 @@ private static Logger logger = LoggerFactory.getLogger(OrderController.class);
 		return back;
 	}
 
+	@RequestMapping(value = "updateOrders",method = RequestMethod.POST)
+	@ResponseBody
+	public JsonBackData updateOrders(@RequestBody Map<String,Object> map) throws Exception {
+		JsonBackData back = new JsonBackData();
+		try {
+			Object re = service.updateOrders(map);	
+			back.setBackData(re);
+			back.setSuccess(true);
+			back.setBackMsg("更新订单信息1111成功！");
+
+		} catch (Exception e) {
+			logger.error("更新订单信息1111成功方法:", e);
+			back.setSuccess(false);
+			back.setBackMsg("更新订单信息1111成功失败," + e.getMessage());
+		}
+		return back;
+	}
+
+	
 }

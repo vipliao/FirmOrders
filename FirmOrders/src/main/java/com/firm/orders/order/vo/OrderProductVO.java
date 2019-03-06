@@ -24,7 +24,9 @@ public class OrderProductVO extends SuperSubVO{
 	
 	private BigDecimal productCostPrice;
 	
-	private int productWarehouse;
+	private String productWarehouse;
+	
+	private String productWarehouseName;
 
 	public String getProductId() {
 		return productId;
@@ -82,12 +84,22 @@ public class OrderProductVO extends SuperSubVO{
 		this.productCostPrice = productCostPrice;
 	}
 
-	public int getProductWarehouse() {
+	public String getProductWarehouse() {
 		return productWarehouse;
 	}
 
-	public void setProductWarehouse(int productWarehouse) {
+	public void setProductWarehouse(String productWarehouse) {
 		this.productWarehouse = productWarehouse;
 	}
+
+	public String getProductWarehouseName() {
+		return productWarehouseName;
+	}
+
+	public void setProductWarehouseName(String productWarehouseName) {
+		this.productWarehouseName = productWarehouseName;
+	}
+	
+	
 
 }

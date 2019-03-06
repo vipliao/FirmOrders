@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.firm.orders.base.service.IBaseService;
@@ -39,5 +40,7 @@ public interface IOrderService extends IBaseService<OrderEntity, OrderVO> {
 	Object personalOrder(Map<String, Object> map) throws Exception;
 
 	Object regionOrderNature(Map<String, Object> map) throws Exception;
+
+	Object updateOrders(Map<String,Object> map) throws Exception;
 
 }

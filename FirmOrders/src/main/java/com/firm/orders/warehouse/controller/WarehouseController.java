@@ -111,12 +111,12 @@ public class WarehouseController {
 			WarehouseVO reVO = service.save(vo, WarehouseEntity.class, WarehouseVO.class);
 			back.setBackData(reVO);
 			back.setSuccess(true);
-			back.setBackMsg("产品信息保存成功！");
+			back.setBackMsg("仓库信息保存成功！");
 
 		} catch (Exception e) {
-			logger.error("产品信息保存方法：", e);
+			logger.error("仓库信息保存方法：", e);
 			back.setSuccess(false);
-			back.setBackMsg("产品信息保存失败," + e.getMessage());
+			back.setBackMsg("仓库信息保存失败," + e.getMessage());
 		}
 		return back;
 	}

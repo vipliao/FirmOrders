@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,9 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.firm.orders.base.service.impl.BaseServiceImpl;
 import com.firm.orders.base.utils.JavaUuidGenerater;
+import com.firm.orders.user.vo.UserVO;
 import com.firm.orders.warehouse.entity.WarehouseEntity;
 import com.firm.orders.warehouse.service.IWarehouseService;
 import com.firm.orders.warehouse.vo.WarehouseVO;
@@ -29,6 +34,10 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 	public Page<WarehouseVO> queryList(Pageable pageable, Map<String, Object> map) throws Exception {
 		StringBuilder sql = new StringBuilder();
 		sql.append("select * from warehouse_info where 1=1");
+		UserVO user = getCurrentUser();
+		if(user.getRoleLevel()>=2){
+			sql.append(" and biz_range="+user.getRoleBizRange());
+		}
 		if(map !=null){
 			if(map.containsKey("keyWords")){
 				String keyWords = (String) map.get("keyWords");
@@ -37,7 +46,7 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 				}
 			}
 		}
-		sql.append(" order by create_time desc");
+		sql.append(" order by code asc,create_time desc");
 		int total =  getTotalCount(sql.toString());
 		if(pageable != null){
 			sql.append(" limit " + pageable.getPageNumber() * pageable.getPageSize() + "," + pageable.getPageSize());
@@ -50,27 +59,64 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 		return null;
 	}
 
+	private String increaseCode(String code) {
+		int s = Integer.parseInt(code);
+		++s;
+		String reslut = s > 10 ? (s > 100 ? s + "" : "0" + s) : "00" + s; 
+		return reslut;
+	}
+	
+	@Override
+	public WarehouseVO save(WarehouseVO vo, Class<WarehouseEntity> clazzE, Class<WarehouseVO> clazzV) throws Exception {
+		checkNameAndCode(vo);
+		if(vo.getCode()==null || vo.getCode().equals("")) {
+			String sql1 = "select max(code) from warehouse_info where code like '00%'";
+			List<String> list1 = jdbcTemplate.queryForList(sql1.toString(), String.class);
+			String beginCode=null;
+			if(CollectionUtils.isEmpty(list1)){
+				beginCode="001";
+			}else{
+				beginCode = increaseCode(list1.get(0));
+			}
+			vo.setCode(beginCode);
+		}
+		
+		return super.save(vo, clazzE, clazzV);
+	}
+	
+	@Transactional
 	@Override
 	public List<WarehouseVO> save(List<WarehouseVO> list) throws Exception {
 		List<WarehouseVO> addList = new ArrayList<>();
 		List<String> delIds = new ArrayList<>();
 		List<String> sqls = new ArrayList<>();
 		if(null != list && list.size()>0){
-			for(WarehouseVO vo:list){
-				if(vo.getName()==null || vo.getName().equals("")){
-					throw new Exception("名称为空的数据!");
-				}
+			String sql1 = "select max(code) from warehouse_info where code like '00%'";
+			List<String> list1 = jdbcTemplate.queryForList(sql1.toString(), String.class);
+			String beginCode=null;
+			if(CollectionUtils.isEmpty(list1) || list1.get(0)==null || list1.get(0).equals("")){
+				beginCode="001";
+			}else{
+				beginCode = increaseCode(list1.get(0));
+			}
+			for(int i=0;i<list.size();i++){
+				checkNameAndCode(list.get(i));
 				/*if(vo.getOrdeCodePrefix()==null || vo.getOrdeCodePrefix().equals("")){
 					vo.setOrdeCodePrefix("order");
 				}*/
-				if(vo.getId()!=null && !vo.getId().equals("")){
-					delIds.add(vo.getId());	
-					if(vo.getVoState()!=3){
-						addList.add(vo);
+				if(list.get(i).getId()!=null && !list.get(i).getId().equals("")){
+					delIds.add(list.get(i).getId());	
+					if(list.get(i).getVoState()!=3){
+						addList.add(list.get(i));
 					}
 				}else{
-					if(vo.getVoState()!=3){
-						addList.add(vo);
+					if(list.get(i).getVoState()!=3){
+						if(list.get(i).getCode()==null || list.get(i).getCode().equals("")){
+							list.get(i).setCode(beginCode);
+							beginCode = increaseCode(beginCode);
+						}
+						
+						addList.add(list.get(i));
 					}
 					
 				}
@@ -121,7 +167,7 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 					}else{
 						sql.append("#"+null+"#,");
 					}
-					sql.append(vo.getBizRange()+",");
+					sql.append(vo.getBizRange());
 					sql.append(")");
 					sqls.add(sql.toString().replace("#", ""));
 				}
@@ -132,13 +178,52 @@ public class WarehouseServiceImpl extends BaseServiceImpl<WarehouseEntity, Wareh
 		
 		return queryList(null, null).getContent();
 	}
+	private void checkNameAndCode(WarehouseVO vo) throws Exception {
+		UserVO user = getCurrentUser();
+		if(user.getRoleLevel()>=2 && vo.getBizRange()!=user.getRoleBizRange()) {
+			throw new Exception("没有保存数据的权限!");
+		}
+		if(vo.getName()==null || vo.getName().equals("")){
+			throw new Exception("存在名称为空的数据!");
+		}
+		if(vo.getId() ==null || vo.getId().equals("")){
+			StringBuffer sql = new StringBuffer("select * from warehouse_info where name='"+vo.getName()+"'");
+			if(vo.getCode() != null && vo.getCode().equals("")) {
+				sql.append("' or code='"+vo.getCode()+"'");
+			}
+			List<WarehouseVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<WarehouseVO>(WarehouseVO.class));
+			if(list !=null) {
+				for(WarehouseVO db: list) {
+					if(db.getName().equals(vo.getName())) {
+						throw new Exception("存在名称"+vo.getName()+"重复的数据!");
+					}
+					if(vo.getCode() != null && !vo.getCode().equals("") && db.getCode().equals(vo.getCode())){
+						throw new Exception("存在编码"+vo.getCode()+"重复的数据!");
+					}
+				}
+			}
+		}
+		
+	}
 	
 	private int getTotalCount(String sql) {
 	      String totalSql = "select count(1) from (" + sql + ") t";
 	      Integer total = (Integer)this.jdbcTemplate.queryForObject(totalSql, Integer.class);
 	      return total.intValue();
 	}
+	private UserVO getCurrentUser(){
+		Subject subject = SecurityUtils.getSubject();
+		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
+		return user;
+	}
 
+	@Override
+	public WarehouseVO findVOByCode(String code) throws Exception {
+		String sql = "select * from warehouse_info where code ='"+code+"'";
+		List<WarehouseVO> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<WarehouseVO>(WarehouseVO.class));
+		return list.get(0);
+	}
+	
 
 
 }
