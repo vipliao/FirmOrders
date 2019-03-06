@@ -65,7 +65,9 @@ class Index extends React.Component {
             region: sessionStorage.region,
             isOperator: false,
             isInEdit: true,
-            submitLoading: false
+            submitLoading: false,
+            warehouseLoading:false,
+            warehouseList:[]
         };
 
         this.productColumns = [
@@ -83,9 +85,10 @@ class Index extends React.Component {
                 key: 'wareHouse',
                 render: (text, record, index) => {
                     let house;
-                    if (text === 0) house = '广西';
+                    house = record.wareHouseName?record.wareHouseName:'';
+                  /*  if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
-                    else if (text === 2) house = '武汉2';
+                    else if (text === 2) house = '武汉2';*/
                     return (<div>{house}</div>)
                 }
             }, {
@@ -117,9 +120,10 @@ class Index extends React.Component {
                 key: 'wareHouse',
                 render: (text, record, index) => {
                     let house;
-                    if (text === 0) house = '广西';
+                    house = record && record.wareHouseName?record.wareHouseName:'';
+                    /*if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
-                    else if (text === 2) house = '武汉2';
+                    else if (text === 2) house = '武汉2';*/
                     return (<div>{house}</div>)
                 }
             }, {
@@ -167,13 +171,40 @@ class Index extends React.Component {
     componentWillMount = () => {
         const type = sessionStorage.type;
         //业务员
-        if (type === "3") {
+        if (type === "4") {
             this.setState({isOperator: true});
         }
+        this.queryWarehouseList();
     }
 
     componentDidMount = () => {
-        this.queryDetail();
+
+       this.queryDetail()
+    }
+    queryWarehouseList = callback => {
+        this.setState({warehouseLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList,
+                    warehouseLoading: false
+                }, () => {
+                    if (typeof callback === 'function') callback();
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+        });
     }
 
     queryDetail = () => {
@@ -243,6 +274,7 @@ class Index extends React.Component {
                 orderId: item.orderId,
                 costPrice: item.productCostPrice,
                 wareHouse: item.productWarehouse,
+                wareHouseName: item.productWarehouseName,
                 voState: item.voState
             }
         });
@@ -252,6 +284,8 @@ class Index extends React.Component {
             selectedProduct: rows
         });
     }
+
+
 
     onDelete = record => {
         let {selectedProduct, selectedRowKeys} = this.state;
@@ -320,9 +354,18 @@ class Index extends React.Component {
     onSelectChange = (selectedRowKeys, selectedRows) => {
         const selectedNum = selectedRowKeys.length;
         let wareHouse = this.props.form.getFieldValue('warehouse');
-        let houseName = (wareHouse === 0 && '广西')
+        let warehouseList=this.state.warehouseList?this.state.warehouseList:[];
+        let houseName='';
+        if(warehouseList){
+            for(var i=0;i<warehouseList.length;i++){
+                if(warehouseList[i].code == wareHouse){
+                    houseName = warehouseList[i].name;
+                }
+            }
+        }
+        /*let houseName = (wareHouse === 0 && '广西')
             || (wareHouse === 1 && '北京')
-            || (wareHouse === 2 && '武汉2');
+            || (wareHouse === 2 && '武汉2');*/
         let res = selectedRows.find(item => item.wareHouse != wareHouse);
         if (res) {
             Message.warning(`当前订单仓库为${houseName},与选中产品仓库不匹配！`);
@@ -350,9 +393,15 @@ class Index extends React.Component {
 
     isSameHouse = (val) => {
         let selectedProduct = this.state.selectedProduct;
-        let houseName = (val === 0 && '广西')
-            || (val === 1 && '北京')
-            || (val === 2 && '武汉2');
+        let warehouseList=this.state.warehouseList?this.state.warehouseList:[];
+        let houseName='';
+        if(warehouseList){
+            for(var i=0;i<warehouseList.length;i++){
+                if(warehouseList[i].code == wareHouse){
+                    houseName = warehouseList[i].name;
+                }
+            }
+        }
         let res = selectedProduct.find(item => item.productWarehouse !== val);
         if (res) {
             Message.warning(`当前订单仓库为${houseName},与选中产品仓库不匹配！`);
@@ -449,6 +498,7 @@ class Index extends React.Component {
                         orderId: item.orderId || data.id,
                         productCostPrice: item.costPrice,
                         productWarehouse: item.wareHouse,
+                        productWarehouseName: item.wareHouseName,
                         voState: item.voState || 1
                     }
                 });
@@ -477,7 +527,7 @@ class Index extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {data, selectedProduct, canEdit, isInEdit, showTips, tempSelectedRowKeys, isOperator, pagination, allProduct, loading, submitLoading, showModal} = this.state;
+        const {data, selectedProduct, canEdit, isInEdit, showTips, warehouseLoading,warehouseList,tempSelectedRowKeys, isOperator, pagination, allProduct, loading, submitLoading, showModal} = this.state;
         const rowSelection = {
             selectedRowKeys: tempSelectedRowKeys,
             onChange: this.onSelectChange,
@@ -497,7 +547,7 @@ class Index extends React.Component {
                 <div className='pageContent'>
                     <div className='ibox-content'>
                         {
-                            showTips ? <Alert message="当前日期已过订单发货日期上午十点，则之后不允许修改" type="warning" showIcon/> : null
+                            showTips ? <Alert message="当前日期已过订单发货日期上午十点，业务员不允许修改" type="warning" showIcon/> : null
                         }
                         <Spin spinning={loading}>
                             <Divider>产品信息</Divider>
@@ -576,16 +626,21 @@ class Index extends React.Component {
                                             label="所属仓库"
                                             {...formItemLayout}
                                         >
-                                            {getFieldDecorator('warehouse', {
-                                                rules: [{required: true, message: '所属仓库不能为空!'}],
-                                                initialValue: data.warehouse
-                                            })(
-                                                <Select onChange={v => this.isSameHouse(v)}>
-                                                    <Option value={0}>广西</Option>
-                                                    <Option value={1}>北京</Option>
-                                                    <Option value={2}>武汉2</Option>
-                                                </Select>
-                                            )}
+                                            <Spin spinning={warehouseLoading} indicator={<Icon type="loading"/>}>
+                                                {getFieldDecorator('warehouse', {
+                                                    rules: [{required: true, message: '所属仓库不能为空!',}],
+                                                    initialValue: data.warehouse
+                                                })(
+                                                    <Select>
+                                                        {
+                                                            warehouseList.map(item => {
+                                                                return (<Option key={item.code}
+                                                                                value={item.code}>{item.name}</Option>)
+                                                            })
+                                                        }
+                                                    </Select>
+                                                )}
+                                            </Spin>
                                         </FormItem>
                                     </Col>
                                     <Col {...itemGrid}>

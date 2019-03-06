@@ -10,7 +10,7 @@ import {
     Button,
     Notification,
     Message,
-    InputNumber
+    InputNumber, Icon, Spin
 } from 'antd';
 
 import {formItemLayout, itemGrid} from 'Utils/formItemGrid';
@@ -27,7 +27,39 @@ class Index extends React.Component {
         confirmDirty: false,
         fileList: [],
         submitLoading: false,
+        warehouseLoading:false,
+        warehouseList:[]
     };
+    componentWillMount = () => {
+        this.queryWarehouseList();
+    }
+    componentDidMount = () => {
+
+    }
+    queryWarehouseList = () => {
+        this.setState({warehouseLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+            this.setState({warehouseLoading: false});
+        });
+    }
+
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -64,7 +96,7 @@ class Index extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {fileList, submitLoading} = this.state;
+        const {fileList, warehouseList, warehouseLoading,submitLoading} = this.state;
 
         return (
 
@@ -86,18 +118,23 @@ class Index extends React.Component {
                                     <FormItem
                                         {...formItemLayout}
                                         label="所属仓库"
-                                    >
+                                    > <Spin spinning={warehouseLoading} indicator={<Icon type="loading"/>}>
                                         {getFieldDecorator('wareHouse', {
                                             rules: [{
                                                 required: true, message: '请输入所属仓库',
                                             }],
                                         })(
-                                            <Select placeholder="请输入所属仓库">
-                                                <Option value={0}>广西</Option>
-                                                <Option value={1}>北京</Option>
-                                                <Option value={2}>武汉2</Option>
+                                            <Select>
+                                                {
+                                                    warehouseList.map(item => {
+                                                        return (<Option key={item.code}
+                                                                        value={item.code}>{item.name}</Option>)
+                                                    })
+                                                }
                                             </Select>
                                         )}
+                                        </Spin>
+
                                     </FormItem>
                                 </Col>
                                 <Col {...itemGrid}>

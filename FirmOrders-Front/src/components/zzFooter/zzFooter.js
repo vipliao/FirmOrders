@@ -11,9 +11,9 @@ class ZZFooter extends React.Component {
 
   render() {
     return (
-      <Footer style={{ textAlign: 'center' }}>
-        admin ©2018 Created by ZZ
-      </Footer>
+        <Footer style={{ textAlign: 'center',backgroundColor:'transparent' }}>
+            <div>{"Copyright © 2012 - "+new Date().getFullYear()+" Hoolark Inc. All Rights Reserved"}</div>
+        </Footer>
     );
   }
 }

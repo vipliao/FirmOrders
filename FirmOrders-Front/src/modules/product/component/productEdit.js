@@ -11,7 +11,7 @@ import {
     Spin,
     Message,
     Notification,
-    InputNumber
+    InputNumber, Icon
 } from 'antd';
 import axios from "Utils/axios";
 import {formItemLayout, itemGrid} from 'Utils/formItemGrid';
@@ -28,13 +28,46 @@ class Index extends React.Component {
         this.state = {
             data: {},
             loading: false,
-            submitLoading: false
+            submitLoading: false,
+            warehouseLoading:false,
+            warehouseList:[]
         };
+    }
+    componentWillMount = () => {
+        this.queryWarehouseList();
     }
 
     componentDidMount = () => {
-        this.queryDetail();
+       this.queryDetail();
+
+
     }
+    queryWarehouseList = callback => {
+        this.setState({warehouseLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList,
+                    warehouseLoading: false
+                }, () => {
+                    if (typeof callback === 'function') callback();
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+        });
+    }
+
 
     queryDetail = () => {
         const id = this.props.params.id;
@@ -60,6 +93,8 @@ class Index extends React.Component {
             });
         });
     }
+
+
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -92,7 +127,7 @@ class Index extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {data, loading, submitLoading} = this.state;
+        const {data, warehouseList, warehouseLoading,loading, submitLoading} = this.state;
 
         return (
             <div className="zui-content">
@@ -115,17 +150,21 @@ class Index extends React.Component {
                                         <FormItem
                                             {...formItemLayout}
                                             label="所属仓库"
-                                        >
+                                        ><Spin spinning={warehouseLoading} indicator={<Icon type="loading"/>}>
                                             {getFieldDecorator('wareHouse', {
-                                                rules: [{required: true, message: '请输入所属仓库'}],
+                                                rules: [{required: true, message: '请输入所属仓库',}],
                                                 initialValue: data.wareHouse
                                             })(
-                                                <Select placeholder="请输入所属仓库">
-                                                    <Option value={0}>广西</Option>
-                                                    <Option value={1}>北京</Option>
-                                                    <Option value={2}>武汉2</Option>
+                                                <Select>
+                                                    {
+                                                        warehouseList.map(item => {
+                                                            return (<Option key={item.code}
+                                                                            value={item.code}>{item.name}</Option>)
+                                                        })
+                                                    }
                                                 </Select>
                                             )}
+                                        </Spin>
                                         </FormItem>
                                     </Col>
                                     <Col {...itemGrid}>

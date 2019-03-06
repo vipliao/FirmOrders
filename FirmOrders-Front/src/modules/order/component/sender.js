@@ -47,7 +47,7 @@ class Index extends React.Component {
         align: 'left',
         dataIndex: 'senderAddr',
         key: 'senderAddr',
-      }, {
+      },{
         title: '更新时间',
         width: 200,
         align: 'center',

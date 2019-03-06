@@ -16,7 +16,7 @@ import {
     Notification,
     Popconfirm,
     Message,
-    Radio,
+    Radio, Spin,
 } from 'antd';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
@@ -58,7 +58,9 @@ class Index extends React.Component {
                 pageNumber: 1,
                 pageSize: 10,
             },
-            senderData: {}
+            senderData: {},
+            warehouseLoading:false,
+            warehouseList:[]
         };
 
         this.productColumns = [
@@ -75,10 +77,10 @@ class Index extends React.Component {
                 align: 'center',
                 key: 'wareHouse',
                 render: (text, record, index) => {
-                    let house;
-                    if (text === 0) house = '广西';
+                    let house = record.wareHouseName?record.wareHouseName:'';
+                    /*if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
-                    else if (text === 2) house = '武汉2';
+                    else if (text === 2) house = '武汉2';*/
                     return (<div>{house}</div>)
                 }
             }, {
@@ -111,9 +113,10 @@ class Index extends React.Component {
                 key: 'wareHouse',
                 render: (text, record, index) => {
                     let house;
-                    if (text === 0) house = '广西';
+                    house = record && record.wareHouseName?record.wareHouseName:'';
+                   /* if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
-                    else if (text === 2) house = '武汉2';
+                    else if (text === 2) house = '武汉2';*/
                     return (<div>{house}</div>)
                 }
             }, {
@@ -165,9 +168,36 @@ class Index extends React.Component {
             this.setState({isOperator: true});
         }
         this.getSenderData();
+        this.queryWarehouseList();
     }
 
     componentDidMount = () => {
+    }
+
+    queryWarehouseList = callback => {
+        this.setState({warehouseLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList,
+                    warehouseLoading: false
+                }, () => {
+                    if (typeof callback === 'function') callback();
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+        });
     }
 
     onDelete = id => {
@@ -239,9 +269,15 @@ class Index extends React.Component {
         const selectedNum = selectedRowKeys.length;
 
         let wareHouse = this.props.form.getFieldValue('warehouse');
-        let houseName = (wareHouse === 0 && '广西')
-            || (wareHouse === 1 && '北京')
-            || (wareHouse === 2 && '武汉2');
+        let warehouseList=this.state.warehouseList?this.state.warehouseList:[];
+        let houseName='';
+        if(warehouseList){
+            for(var i=0;i<warehouseList.length;i++){
+                if(warehouseList[i].code == wareHouse){
+                    houseName = warehouseList[i].name;
+                }
+            }
+        }
         let res = selectedRows.find(item => item.wareHouse != wareHouse);
         if (res) {
             Message.warning(`当前订单仓库为${houseName},与选中产品仓库不匹配！`);
@@ -380,7 +416,7 @@ class Index extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {userId, region, isOperator, senderData, selectedProduct, submitLoading, showModal, pagination, loading, allProduct, tempSelectedRowKeys} = this.state;
+        const {userId, region, isOperator, senderData, selectedProduct, warehouseLoading,warehouseList,submitLoading, showModal, pagination, loading, allProduct, tempSelectedRowKeys} = this.state;
         const rowSelection = {
             selectedRowKeys: tempSelectedRowKeys,
             onChange: this.onSelectChange,
@@ -473,16 +509,23 @@ class Index extends React.Component {
                                         label="所属仓库"
                                         {...formItemLayout}
                                     >
-                                        {getFieldDecorator('warehouse', {
-                                            rules: [{required: true, message: '所属仓库不能为空!'}],
-                                            initialValue: 0
-                                        })(
-                                            <Select>
-                                                <Option key='0' value={0}>广西</Option>
-                                                <Option key='1' value={1}>北京</Option>
-                                                <Option key='2' value={2}>武汉2</Option>
-                                            </Select>
-                                        )}
+                                        <Spin spinning={warehouseLoading} indicator={<Icon type="loading"/>}>
+                                            {getFieldDecorator('warehouse', {
+                                                rules: [{
+                                                    required: true, message: '所属仓库不能为空!',
+                                                }],
+                                            })(
+                                                <Select>
+                                                    {
+                                                        warehouseList.map(item => {
+                                                            return (<Option key={item.code}
+                                                                            value={item.code}>{item.name}</Option>)
+                                                        })
+                                                    }
+                                                </Select>
+                                            )}
+                                        </Spin>
+
                                     </FormItem>
                                 </Col>
                                 <Col {...itemGrid}>
@@ -610,6 +653,7 @@ class Index extends React.Component {
                                         })(
                                             <Input disabled/>
                                         )}
+
                                     </FormItem>
                                 </Col>
                                 <Col {...itemGrid}>

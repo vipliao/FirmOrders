@@ -83,10 +83,11 @@ class OrderList extends React.Component {
                 dataIndex: 'warehouse',
                 key: 'warehouse',
                 render: (text, record, index) => {
-                    let house;
-                    if (text === 0) house = '广西';
+                    
+                    let house = record.warehouseName?record.warehouseName:'';
+                   /* if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
-                    else if (text === 2) house = '武汉2';
+                    else if (text === 2) house = '武汉2';*/
                     return (<div>{house}</div>)
                 }
             }, {

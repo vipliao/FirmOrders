@@ -57,21 +57,20 @@ class Index extends React.Component {
     axios.post('order/countPeriodOrder', param).then(res => res.data).then(data => {
       this.setState({periodLoading: false});
       if (data.success) {
+        const periodData = [];
         if (data.backData) {
           const backData = data.backData;
-          const periodData = [];
-
           backData.map(item => {
-            periodData.push({
-              x: item.region,
-              y: item.totalAmount
-            });
+              periodData.push({
+                x: item.region,
+                y: item.totalAmount
+              });
           });
 
-          this.setState({
-            periodData
-          });
         }
+        this.setState({
+          periodData
+        });
       } else {
         Message.error(data.backMsg);
       }

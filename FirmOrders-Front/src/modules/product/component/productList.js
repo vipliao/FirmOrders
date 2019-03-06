@@ -19,6 +19,7 @@ import axios from "Utils/axios";
 import Util from 'Utils/util';
 import '../index.less';
 import {ZZCard, ZZTable} from 'Comps/zz-antD';
+import find from "lodash/find";
 
 const Search = Input.Search;
 
@@ -28,17 +29,20 @@ class ProductList extends React.Component {
 
         this.columns = [
             {
-                title: '仓库地址',
+                title: '仓库',
                 dataIndex: 'wareHouse',
                 width: 150,
                 align: 'center',
                 key: 'wareHouse',
                 render: (text, record, index) => {
-                    let house;
+                    let warehouse = find(this.state.warehouseList, {code: text});
+                    return (<span>{warehouse ? warehouse.name : null}</span>)
+
+                   /* let house;
                     if (text === 0) house = '广西';
                     else if (text === 1) house = '北京';
                     else if (text === 2) house = '武汉2';
-                    return (<div>{house}</div>)
+                    return (<div>{house}</div>)*/
                 }
             }, {
                 title: '产品名称',
@@ -116,6 +120,7 @@ class ProductList extends React.Component {
             loading: false,
             dataSource: [],
             pagination: {},
+            warehouseList: [],
             params: {
                 pageNumber: 1,
                 pageSize: 10,
@@ -125,11 +130,40 @@ class ProductList extends React.Component {
     }
 
     componentWillMount = () => {
+            this.queryWarehouseList();
+
     }
 
     componentDidMount = () => {
         this.queryList();
     }
+    //查询仓库列表
+    queryWarehouseList = callback => {
+        this.setState({roleLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList,
+                    roleLoading: false
+                }, () => {
+                    if (typeof callback === 'function') callback();
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+        });
+    }
+
 
     queryList = () => {
         const {params, keyWords} = this.state;

@@ -7,8 +7,9 @@ import '../login.less';
 
 import loginBg from 'Img/login-bg.jpg';
 import Logo from 'Img/logo.png';
-
+import ZZFooter from 'Comps/zzFooter/zzFooter';
 const FormItem = Form.Item;
+
 
 class Login extends React.Component {
     constructor(props) {
@@ -51,22 +52,27 @@ class Login extends React.Component {
                             let type = null;
                             let initUrl = null;
                             // 超级管理员
-                            if (loginedUser.roleCode === '001') {
+                            if (loginedUser.roleLevel === 0) {
                                 type = 1;
                                 initUrl = '/frame/report/list'
                             }
                             // 管理员
-                            else if (loginedUser.roleCode === '002') {
+                            else if (loginedUser.roleLevel === 1) {
                                 type = 1;
                                 initUrl = '/frame/report/list'
                             }
                             // 二级管理员
-                            else if (loginedUser.roleCode === '003') {
+                            else if (loginedUser.roleLevel === 2) {
+                                type = 2;
+                                initUrl = '/frame/order/list'
+                            }
+                            // 三级管理员
+                             else if (loginedUser.roleLevel === 3) {
                                 type = 2;
                                 initUrl = '/frame/order/list'
                             }
                             // 业务员
-                            else if (loginedUser.roleCode === '004') {
+                            else if (loginedUser.roleLevel === 4) {
                                 type = 3;
                                 initUrl = '/frame/order/list'
                             } else {
@@ -137,6 +143,9 @@ class Login extends React.Component {
                                 </FormItem>
                             </Form>
                         </Col>
+                    </Row>
+                    <Row>
+                        <Col><ZZFooter/></Col>
                     </Row>
                 </div>
             </div>
