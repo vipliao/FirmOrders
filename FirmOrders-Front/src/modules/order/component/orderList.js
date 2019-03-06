@@ -18,7 +18,7 @@ import {
     Modal,
     Button,
     Upload,
-    Drawer,
+    Drawer, Spin,
 } from 'antd';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
@@ -318,6 +318,8 @@ class OrderList extends React.Component {
             showExportOrderModal: false,
             exportOrderDate: null,
             loadingExportButton:false,
+            warehouseList:[],
+            warehouseLoading:false,
         };
     }
 
@@ -331,6 +333,32 @@ class OrderList extends React.Component {
 
     componentDidMount = () => {
         this.queryList();
+    }
+
+    queryWarehouseList = callback => {
+        this.setState({warehouseLoading: true});
+        axios.get('warehouse/queryList').then(res => res.data).then(data => {
+            if (data.success) {
+                let content = data.backData.content;
+                let warehouseList = [];
+                content.map(item => {
+                    warehouseList.push({
+                        id: item.id,
+                        code:item.code,
+                        name: item.name
+                    });
+                });
+
+                this.setState({
+                    warehouseList,
+                    warehouseLoading: false
+                }, () => {
+                    if (typeof callback === 'function') callback();
+                });
+            } else {
+                Message.error(data.backMsg);
+            }
+        });
     }
 
     queryList = () => {
@@ -534,7 +562,7 @@ class OrderList extends React.Component {
         });
     }
 
-    showDrawer = () => this.setState({drawerVisible: true})
+    showDrawer = () => {this.setState({drawerVisible: true});this.queryWarehouseList()};
 
     onClose = () => this.setState({drawerVisible: false})
 
@@ -569,7 +597,7 @@ class OrderList extends React.Component {
 
     render() {
         const {getFieldDecorator} = this.props.form;
-        const {dataSource, pagination, loading, keyWords, showUpload, showUpdatExpress, drawerVisible, showExportOrderModal,loadingExportButton} = this.state;
+        const {dataSource, pagination, loading, keyWords,warehouseLoading,warehouseList, showUpload, showUpdatExpress, drawerVisible, showExportOrderModal,loadingExportButton} = this.state;
 
         return (
             <div className="zui-content page-orderList">
@@ -683,15 +711,22 @@ class OrderList extends React.Component {
                                         <FormItem
                                             label="仓库"
                                         >
-                                            {getFieldDecorator('warehouse', {
-                                                rules: [{required: false}],
-                                                initialValue: ''
-                                            })(
-                                                <Select>
-                                                    <Option key='0' value={0}>武汉</Option>
-                                                    <Option key='1' value={1}>北京</Option>
-                                                </Select>
-                                            )}
+                                            <Spin spinning={warehouseLoading} indicator={<Icon type="loading"/>}>
+                                                {getFieldDecorator('warehouse', {
+                                                    rules: [{
+                                                        required: false,
+                                                    }],
+                                                })(
+                                                    <Select>
+                                                        {
+                                                            warehouseList.map(item => {
+                                                                return (<Option key={item.code}
+                                                                                value={item.code}>{item.name}</Option>)
+                                                            })
+                                                        }
+                                                    </Select>
+                                                )}
+                                            </Spin>
                                         </FormItem>
                                     </Col>
                                     <Col span={12}>
