@@ -691,7 +691,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		sql.append(" inner join user_info us on uor.user_id = us.id");
 		sql.append(" left join role_info role on us.role_id = role.id");
 		sql.append(" where 1=1 ");
-		sql.append(" and role.biz_range="+userVO.getRoleBizRange());
+		if(userVO.getRoleLevel()>1) {
+			sql.append(" and role.biz_range="+userVO.getRoleBizRange());
+		}
 		if(userVO.getRoleLevel()==3) {
 			//三级管理员
 			sql.append(" and us.region like '"+userVO.getRegion()+"%'");	
