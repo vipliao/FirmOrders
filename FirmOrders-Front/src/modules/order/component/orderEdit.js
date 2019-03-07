@@ -171,7 +171,7 @@ class Index extends React.Component {
     componentWillMount = () => {
         const type = sessionStorage.type;
         //业务员
-        if (type === "4") {
+        if (type === "3") {
             this.setState({isOperator: true});
         }
         this.queryWarehouseList();
