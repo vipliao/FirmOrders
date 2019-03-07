@@ -30,7 +30,6 @@ import com.firm.orders.base.utils.ChineseToPinyinHelper;
 import com.firm.orders.base.utils.JavaUuidGenerater;
 import com.firm.orders.base.utils.SnowflakeIdGenerater;
 import com.firm.orders.base.utils.SymmetricEncoder;
-import com.firm.orders.role.service.IRoleService;
 import com.firm.orders.role.vo.RoleVO;
 import com.firm.orders.user.entity.UserEntity;
 import com.firm.orders.user.service.IUserService;
@@ -47,8 +46,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	@Autowired
 	private IAssessoryService assessoryService;
 	
-	@Autowired
-	private IRoleService roleService;
 	
 	@Value("${encrypt.encodeRules}")
 	private String encodeRules;
@@ -221,7 +218,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			if(userVO.getRoleBizRange() != preUserRole.getBizRange()) {
 				throw new Exception("没有权限保存此角色用户的数据！");
 			}
-			if(userVO.getRoleLevel()==3 && !userVO.getRegion().equals(vo.getRegion())){
+			if(userVO.getRoleLevel()==3 && !vo.getRegion().startsWith(userVO.getRegion())){
 				throw new Exception("没有权限保存此区域用户的数据！");
 			}
 			
