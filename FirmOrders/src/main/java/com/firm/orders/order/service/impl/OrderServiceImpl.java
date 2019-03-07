@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -31,7 +32,6 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.firm.orders.base.entity.BaseEntity;
@@ -47,7 +47,6 @@ import com.firm.orders.order.service.IOrderService;
 import com.firm.orders.order.vo.OrderProductVO;
 import com.firm.orders.order.vo.OrderVO;
 import com.firm.orders.product.vo.ProductVO;
-import com.firm.orders.role.service.IRoleService;
 import com.firm.orders.user.vo.UserVO;
 import com.firm.orders.warehouse.service.IWarehouseService;
 import com.firm.orders.warehouse.vo.WarehouseVO;
@@ -58,8 +57,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	@Autowired
-	private IRoleService roleService;
+	
 	@Autowired
 	private IWarehouseService warehouseService;
 	
@@ -100,11 +98,11 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 			if(warehouseVO != null){
 				if(userVO.getRoleLevel()>1 &&  userVO.getRoleBizRange() !=  warehouseVO.getBizRange()){
-					throw new Exception("没有权限添加"+warehouseVO.getName()+"仓库的订单!");
+					throw new Exception("没有权限操作"+warehouseVO.getName()+"仓库的订单!");
 				}
 			}
-			if(userVO.getRoleLevel()>=3 && !userVO.getRegion().equals(vo.getRegion())){
-				throw new Exception("没有权限添加"+userVO.getRegion()+"区域的订单!");
+			if(userVO.getRoleLevel()>=3 && !vo.getRegion().startsWith(userVO.getRegion())){
+				throw new Exception("没有权限操作"+userVO.getRegion()+"区域的订单!");
 			}
 			if(userVO.getRoleLevel()==4){//业务员
 				//当天时间过了10点,不能新增发货时间为今天的订单
@@ -1914,26 +1912,42 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
 		if(map.containsKey("phone")){
-			if(user.getRoleLevel()==3){
+			if(user.getRoleLevel()==4){
 				throw new Exception("业务员只能查看自己的订单数据！");
 			}else{
 				String phone = (String) map.get("phone");
+				if(user.getRoleLevel() ==3){
+					//三级管理员，只能看本业务范围的本区域的数据
+					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"'"
+							+ " and us.role_id in ("
+								+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+"))"
+							+ " and us.region like '"+user.getRegion()+"%')");
+				}
 				if(user.getRoleLevel()==2){
-					//二级管理员,sql只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
+					//二级管理员,只能看本业务范围的数据，不能看到对方数据
 					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"'"
 									+ " and us.role_id in ("
 										+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+")))");
 				}
+				
 				
 			}
 			
 		}else{
 			String userId = user.getId();
 			if(map.containsKey("userId")){
-				if(user.getRoleLevel()==3){
+				if(user.getRoleLevel()==4){
 					throw new Exception("业务员只能查看自己的订单数据！");
 				}else{
 					userId = (String) map.get("userId");
+					if(user.getRoleLevel() ==3){
+						//三级管理员，只能看本业务范围的本区域的数据
+						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"
+								+ " and us.role_id in ("
+									+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+"))"
+								+ " and us.region like '"+user.getRegion()+"%')");
+					}
+					
 					if(user.getRoleLevel()==2){
 						//二级管理员,sql.append只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
 						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"

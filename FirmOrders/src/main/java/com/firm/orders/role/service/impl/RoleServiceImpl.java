@@ -41,11 +41,11 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleEntity, RoleVO> impleme
 				sql.append(" and biz_range ="+userVO.getRoleBizRange());
 			}
 			if(userVO.getRoleLevel()>1) {
-				sql.append(" and level >"+userVO.getRoleLevel());
+				sql.append(" and level >="+userVO.getRoleLevel());
 			}
 			
 		}
-		sql.append(" order by role_code ASC,create_time desc");
+		sql.append(" order by role_code asc");
 		int total =  getTotalCount(sql.toString());
 		if(pageable != null){
 			sql.append(" limit " + pageable.getPageNumber() * pageable.getPageSize() + "," + pageable.getPageSize());
