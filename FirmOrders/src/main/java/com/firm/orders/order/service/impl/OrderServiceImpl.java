@@ -302,7 +302,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				 /* ==========================广西仓库=======================================
 				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费/打包费
 				 *  		+手续费（每个订单代收金额*百分比）+邮费/运费
-				 *  成本比例=武汉仓库成本费用/订单总金额
+				 *  成本比例=仓库成本费用/订单总金额
 				 * ==========================================================================
 				 */
 				
@@ -310,6 +310,10 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					//顺丰
 					costAmount = (sumProductCost.add(new BigDecimal(5.5))
 							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
+				}if (vo.getExpressCompany()==1){
+					//邮政
+					costAmount = (sumProductCost.add(new BigDecimal(5.5))
+							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))));
 				}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
 					//中通或圆通
 					costAmount = (sumProductCost.add(new BigDecimal(5.5))
