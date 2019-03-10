@@ -844,7 +844,7 @@ class Index extends React.Component {
                                                 initialValue: data.isOverCost
                                             })(
                                                 <RadioGroup>
-                                                    <Radio value={0}>不是</Radio>
+                                                    <Radio value={0}>否</Radio>
                                                     <Radio value={1}>是</Radio>
                                                 </RadioGroup>
                                             )}
@@ -925,7 +925,7 @@ class Index extends React.Component {
                                                 initialValue: data.isForeignExpress
                                             })(
                                                 <RadioGroup>
-                                                    <Radio value={0}>不是</Radio>
+                                                    <Radio value={0}>否</Radio>
                                                     <Radio value={1}>是</Radio>
                                                 </RadioGroup>
                                             )}

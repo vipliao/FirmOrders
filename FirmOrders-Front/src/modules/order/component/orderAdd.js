@@ -727,7 +727,7 @@ class Index extends React.Component {
                                             initialValue: 0
                                         })(
                                             <RadioGroup>
-                                                <Radio value={0}>不是</Radio>
+                                                <Radio value={0}>否</Radio>
                                                 <Radio value={1}>是</Radio>
                                             </RadioGroup>
                                         )}
@@ -839,7 +839,7 @@ class Index extends React.Component {
                                             initialValue: 0
                                         })(
                                             <RadioGroup>
-                                                <Radio value={0}>不是</Radio>
+                                                <Radio value={0}>否</Radio>
                                                 <Radio value={1}>是</Radio>
                                             </RadioGroup>
                                         )}

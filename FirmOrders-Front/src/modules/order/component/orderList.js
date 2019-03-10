@@ -199,7 +199,7 @@ class OrderList extends React.Component {
                 dataIndex: 'isForeignExpress',
                 key: 'isForeignExpress',
                 render: (text, record, index) => (
-                    <div>{text === 0 ? '不是' : '是'}</div>
+                    <div>{text === 0 ? '否' : '是'}</div>
                 )
             }, {
                 title: '是否超过成本',
@@ -208,7 +208,7 @@ class OrderList extends React.Component {
                 dataIndex: 'isOverCost',
                 key: 'isOverCost',
                 render: (text, record, index) => (
-                    <div>{text === 0 ? '不是' : '是'}</div>
+                    <div>{text === 0 ? '否' : '是'}</div>
                 )
             }, {
                 title: '成本',
@@ -407,7 +407,12 @@ class OrderList extends React.Component {
         this.setState({
             searchKey: {
                 keyWords: val
-            }
+            },
+            params: {
+                pageNumber: 1,
+                pageSize: 10,
+            },
+            pagination:{current:1}//重置分页当前页为第一页
         }, () => {
             this.queryList();
         });
@@ -586,7 +591,12 @@ class OrderList extends React.Component {
                 console.log('searchKey == ', searchKey);
                 this.setState({
                     drawerVisible: false,
-                    searchKey
+                    searchKey,
+                    params: {
+                        pageNumber: 1,
+                        pageSize: 10,
+                    },
+                    pagination:{current:1}//重置分页当前页为第一页
                 }, () => this.queryList());
             }
         })
@@ -775,8 +785,8 @@ class OrderList extends React.Component {
                                                 <Select>
                                                     <Option key='0' value={0}>编辑中</Option>
                                                     <Option key='1' value={1}>已锁定</Option>
-                                                    <Option key='2' value={2}>已发货</Option>
-                                                    <Option key='3' value={3}>已成单</Option>
+                                                    <Option key='2' value={2}>已发快递</Option>
+                                                    <Option key='3' value={3}>成单</Option>
                                                 </Select>
                                             )}
                                         </FormItem>

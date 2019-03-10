@@ -14,12 +14,13 @@ class ZZTable extends React.Component {
                 showSizeChanger: true,
                 showQuickJumper: true,
                 onChange: this.onChange,
-                onShowSizeChange: this.onShowSizeChange
+                onShowSizeChange: this.onShowSizeChange,
+
             }
         };
     }
 
-    componentDidMount = () => {
+    componentWillMount = () => {
         this.setData();
     }
 
