@@ -354,24 +354,31 @@ class Index extends React.Component {
     onSelectChange = (selectedRowKeys, selectedRows) => {
         const selectedNum = selectedRowKeys.length;
         let wareHouse = this.props.form.getFieldValue('warehouse');
+        let currentWareHouse;
+        if(wareHouse){
+            currentWareHouse = wareHouse;
+        }else{
+            currentWareHouse = this.state.tempSelectedRow
+            && this.state.tempSelectedRow.length>0 ?this.state.tempSelectedRow[0].wareHouse:null;
+        }
         let warehouseList=this.state.warehouseList?this.state.warehouseList:[];
         let houseName='';
         if(warehouseList){
             for(var i=0;i<warehouseList.length;i++){
-                if(warehouseList[i].code == wareHouse){
+                if(warehouseList[i].code == currentWareHouse){
                     houseName = warehouseList[i].name;
                 }
             }
         }
-        /*let houseName = (wareHouse === 0 && '广西')
-            || (wareHouse === 1 && '北京')
-            || (wareHouse === 2 && '武汉2');*/
-        let res = selectedRows.find(item => item.wareHouse != wareHouse);
-        if (res) {
-            Message.warning(`当前订单仓库为${houseName},与选中产品仓库不匹配！`);
+        let res = selectedRows.find(item => currentWareHouse && item.wareHouse != currentWareHouse);
+        if(res){
+            if(!wareHouse){
+                Message.warning(`所选产品${res.name}的仓库,与已选中的其他产品仓库不匹配！`);
+                return;
+            }
+            Message.warning(`当前订单仓库为${houseName},选中产品仓库不匹配！`);
             return;
         }
-
         if (selectedNum <= 6) {
             this.setState({
                 tempSelectedRowKeys: selectedRowKeys,
@@ -380,6 +387,11 @@ class Index extends React.Component {
         } else {
             Message.warning('产品种类最多为六种');
         }
+        if(!currentWareHouse){
+            currentWareHouse = selectedRows[0].wareHouse;
+        }
+        this.props.form.setFieldsValue({'warehouse':currentWareHouse});
+
     }
 
     setEachProNumber = (val, record, index) => {
@@ -525,6 +537,20 @@ class Index extends React.Component {
         });
     }
 
+    formWareHouseChange = value =>{
+        console.log('formWareHouseChange---'+value+'--');
+        if(value){
+            const {selectedProduct} = this.state;
+            if(selectedProduct && selectedProduct instanceof  Array && selectedProduct.length>0){
+                let wareHouse = selectedProduct[0].wareHouse;
+                let wareHouseName = selectedProduct[0].wareHouseName;
+                if(value != wareHouse){
+                    Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择！`);
+                    this.props.form.setFieldsValue({'warehouse':wareHouse});
+                }
+            }
+        }
+    }
     render() {
         const {getFieldDecorator} = this.props.form;
         const {data, selectedProduct, canEdit, isInEdit, showTips, warehouseLoading,warehouseList,tempSelectedRowKeys, isOperator, pagination, allProduct, loading, submitLoading, showModal} = this.state;
@@ -631,7 +657,7 @@ class Index extends React.Component {
                                                     rules: [{required: true, message: '所属仓库不能为空!',}],
                                                     initialValue: data.warehouse
                                                 })(
-                                                    <Select>
+                                                    <Select onChange={this.formWareHouseChange}>
                                                         {
                                                             warehouseList.map(item => {
                                                                 return (<Option key={item.code}
