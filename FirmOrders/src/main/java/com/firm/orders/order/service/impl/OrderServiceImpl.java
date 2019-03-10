@@ -65,11 +65,11 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	@Override
 	public OrderVO save(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception {
 		OrderEntity entity = bulidEntity(vo, clazzE, clazzV);
+		List<OrderProductVO> reDetailVOs  = saveOrderProduct(entity.getId(),vo.getWarehouse(),vo.getChildrenDetail());
 		if(entity.getId() !=null && !entity.getId().equals("")){
 			String mainDelSql = "delete from order_info where id = '" + entity.getId() + "'";
 			jdbcTemplate.update(mainDelSql);
 		}
-		List<OrderProductVO> reDetailVOs  = saveOrderProduct(entity.getId(),vo.getWarehouse(),vo.getChildrenDetail());
 		List<OrderEntity> saveList = new ArrayList<>();
 		saveList.add(entity);
 		List<OrderEntity> newList = bathSave(saveList);
@@ -469,9 +469,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		return orders;
 	}
 	 
-	
-	
-	
+	@Transactional
 	private List<OrderProductVO> saveOrderProduct(String mainTableKey,String wareHouse,List<OrderProductVO> list) throws Exception{
 		if(null == mainTableKey || mainTableKey.equals("")){
 			throw new Exception("主表主键不能为空！");
