@@ -342,7 +342,7 @@ class Index extends React.Component {
                   icon='plus'
                   size="large"
                   onClick={this.addUser}
-                  style={{marginLeft: 25}}
+                  style={{marginLeft: 25,borderColor: 'rgba(0, 0, 0, 0.35)'}}
                 >新增用户</Button>
               </Col>
             </Row>

@@ -308,7 +308,7 @@ class Index extends React.Component {
                   icon='plus'
                   size="large"
                   onClick={this.addSenderModal}
-                  style={{marginLeft: 25}}
+                  style={{marginLeft: 25,borderColor: 'rgba(0, 0, 0, 0.35)'}}
                 >新增寄件方信息</Button>
               </Col>
             </Row>

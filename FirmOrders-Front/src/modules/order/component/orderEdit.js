@@ -588,7 +588,8 @@ class Index extends React.Component {
                                         icon='plus'
                                         onClick={this.showModal}
                                         style={{
-                                            padding: '0 150px'
+                                            padding: '0 150px',
+                                            borderColor: 'rgba(0, 0, 0, 0.45)'
                                         }}
                                     >选择产品</Button>
                                 </div>

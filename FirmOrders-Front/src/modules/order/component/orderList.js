@@ -638,7 +638,7 @@ class OrderList extends React.Component {
                                     icon='plus'
                                     size="large"
                                     onClick={this.addOrder}
-                                    style={{marginLeft: 25}}
+                                    style={{marginLeft: 25,borderColor: 'rgba(0, 0, 0, 0.35)'}}
                                 >新增订单</Button>
                             </Col>
                             <Col>
@@ -818,6 +818,8 @@ class OrderList extends React.Component {
                 <div className='pageContent'>
                     <ZZCard
                         title={sessionStorage.type !== '3' ? (<Button
+
+                                style={{borderColor: 'rgba(0, 0, 0, 0.35)'}}
                                 icon='export'
                                 onClick={this.exportExcelTemplate}
                             >订单快递状态更新模板</Button>
