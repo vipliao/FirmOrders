@@ -205,7 +205,7 @@ class Index extends React.Component {
                                         <Button
                                             icon='download'
                                             onClick={this.exportMultiPurchaseOrder}
-                                            style={{marginLeft: 15,borderColor: 'rgba(0, 0, 0, 0.35)'}}
+                                            style={{marginLeft: 15,borderColor: '#b6b6b6'}}
                                         >导出表格</Button>
                                     </FormItem>
                                 </Form>
