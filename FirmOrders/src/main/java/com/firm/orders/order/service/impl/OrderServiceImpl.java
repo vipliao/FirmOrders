@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,6 +62,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	
 	@Autowired
 	private IWarehouseService warehouseService;
+	
+	@Autowired
+	private ThreadPoolTaskExecutor taskExecutor;
 	
 	@Transactional
 	@Override
@@ -1396,11 +1401,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		if(userVO != null){
 			if(userVO.getRoleLevel()==4){
-				// 业务员,今天之前的订单只能查看发货日期自己近两月的
+				
 				String userId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser"))
 						.getId();
 				sql.append(" and user_id = '" + userId + "'");
 				sql.append(" and warehouse in (select code from warehouse_info where biz_range="+userVO.getRoleBizRange()+")");
+				// 业务员,今天之前的订单只能查看发货日期自己近两月的 (已注释)
 				/*sql.append(
 						" and (deliver_date between date_sub(curdate(),interval 2 month) and (select max(deliver_date) from order_info))");*/
 			}else if(userVO.getRoleLevel()==2){
@@ -1914,39 +1920,43 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
 		if(map.containsKey("phone")){
-			if(user.getRoleLevel()==4){
+			if(!user.getPhone().equals(map.get("phone").toString().trim()) && user.getRoleLevel()==4){
 				throw new Exception("业务员只能查看自己的订单数据！");
 			}else{
 				String phone = (String) map.get("phone");
-				if(user.getRoleLevel() ==3){
+			/*	if(user.getRoleLevel() ==3){
 					//三级管理员，只能看本业务范围的本区域的数据
 					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"'"
 							+ " and us.role_id in ("
-								+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+"))"
+								+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+"))"
 							+ " and us.region like '"+user.getRegion()+"%')");
 				}
 				if(user.getRoleLevel()==2){
 					//二级管理员,只能看本业务范围的数据，不能看到对方数据
 					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"'"
 									+ " and us.role_id in ("
-										+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+")))");
+										+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+")))");
 				}
+				if(user.getRoleLevel()<=1 || user.getRoleLevel()==4){
+					//业务员或者管理员或者超管(如果是业务员，已经判断过是否是自己)
+					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"')");
+				}*/
 				
-				
+				sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"')");
 			}
 			
 		}else{
 			String userId = user.getId();
 			if(map.containsKey("userId")){
-				if(user.getRoleLevel()==4){
+				if(!userId.equals(map.get("userId").toString().trim()) && user.getRoleLevel()==4){
 					throw new Exception("业务员只能查看自己的订单数据！");
 				}else{
 					userId = (String) map.get("userId");
-					if(user.getRoleLevel() ==3){
+				/*	if(user.getRoleLevel() ==3){
 						//三级管理员，只能看本业务范围的本区域的数据
 						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"
 								+ " and us.role_id in ("
-									+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+"))"
+									+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+"))"
 								+ " and us.region like '"+user.getRegion()+"%')");
 					}
 					
@@ -1954,8 +1964,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						//二级管理员,sql.append只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
 						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"
 										+ " and us.role_id in ("
-											+ "select ro.id from role_info ro where (ro.biz_range =0  or ro.biz_range= "+user.getRoleBizRange()+")))");
-					}
+											+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+")))");
+					}*/
+					/*if(user.getRoleLevel()<=1 || user.getRoleLevel()==4){*/
+						//业务员或者管理员或者超管(如果是业务员，已经判断过是否是自己)
+						sql.append(" and user_id='"+userId+"'");
+					/*}*/
 					
 				}
 			}else{
@@ -2126,31 +2140,59 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 
 	@Transactional
 	public Object  updateOrders(Map<String,Object> map) throws Exception {
-		String beginDate =(String) map.get("beginDate");
-		String endDate =(String) map.get("endDate");
-		String sql = "select * from order_info where warehouse='001' and create_time between '"+beginDate+" 00:00:00' and '"+endDate+" 00:00:00'";
-		List<OrderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<OrderVO>(OrderVO.class));
-		if(CollectionUtils.isNotEmpty(list)) {
-			queryOrderProducts(list);
-			List<OrderEntity> enList = new ArrayList<OrderEntity>();
-			List<String> ids = new ArrayList<String>();
-			for(OrderVO order : list) {
-				order.setCostRatio(calculateCostRatio(order));
-				order.setIsOverCost(isOverCost(order)?0:1);
-				OrderEntity entity = handleSingleV2E(order, OrderEntity.class);
-				ids.add(entity.getId());
-				enList.add(entity);
-			}
-			if(CollectionUtils.isNotEmpty(ids)){
-				String idsStr = ids.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
-						.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
-				String mainDelSql = "delete from order_info where id in "+idsStr;
-				jdbcTemplate.update(mainDelSql);
-			}
-			List<OrderEntity> newEnList = bathSave(enList);
-			return newEnList;
-		}
+		Map<String,String> map1 = new ConcurrentHashMap<>();
+		map1.put("2019-02-12", "2019-02-15");
+		map1.put("2019-02-16", "2019-02-19");
+		map1.put("2019-02-20", "2019-02-23");
+		map1.put("2019-02-24", "2019-02-27");
+		map1.put("2019-02-28", "2019-03-03");
+		map1.put("2019-03-04", "2019-03-06");
+		long start = System.currentTimeMillis();
+		map1.forEach((k, v) -> 
+			taskExecutor.execute(new Runnable() {  
+			    @Override  
+			    public void run() {  
+			        	try {
+							doUpateCostRatioOrder(k,v);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+			       
+			    }  
+			})
+		);
+		 while (true){
+	            int count = taskExecutor.getActiveCount();
+	            System.out.println("Active Threads : " + count);
+	            if(count==0){
+	                taskExecutor.shutdown();
+	                long end = System.currentTimeMillis();
+	                System.out.println("totalTime:"+(end-start)/1000 +"s");
+	                break; //所有线程任务执行完
+	            }
+		 }
 		return null;
+	}
+
+	private void doUpateCostRatioOrder(String beginDate, String endDate) throws Exception {
+		String sql = "select * from order_info where warehouse='001' and create_time between '" + beginDate
+				+ " 00:00:00' and '" + endDate + " 00:00:00'";
+		List<OrderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<OrderVO>(OrderVO.class));
+		List<String> upSqls = new ArrayList<>();
+		if (CollectionUtils.isNotEmpty(list)) {
+			queryOrderProducts(list);
+			for (OrderVO order : list) {
+				order.setCostRatio(calculateCostRatio(order));
+				order.setIsOverCost(isOverCost(order) ? 0 : 1);
+				String sql1 = "update order_info set cost_ratio='" + order.getCostRatio() + "',is_over_cost ="
+						+ order.getIsOverCost() + " ,cost_amount='" + order.getCostAmount() + "' where id='"
+						+ order.getId() + "'";
+				upSqls.add(sql1);
+			}
+			if (CollectionUtils.isNotEmpty(upSqls)) {
+				jdbcTemplate.batchUpdate(upSqls.toArray(new String[upSqls.size()]));
+			}
+		}
 	}
 	
 }

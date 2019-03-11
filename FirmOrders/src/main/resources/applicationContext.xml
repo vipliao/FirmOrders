@@ -2,11 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop"
 	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd
-		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd"
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd"
 	default-lazy-init="true">
 	<description>基础配置</description>
 
@@ -31,6 +33,19 @@
 			</bean>
 		</property>
 	</bean>
+	
+	<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <!-- 核心线程数 -->     
+        <property name="corePoolSize" value="${task.core_pool_size}" />
+        <!-- 最大线程数 -->  
+        <property name="maxPoolSize" value="${task.max_pool_size}" />
+        <!-- 队列最大长度 -->
+        <property name="queueCapacity" value="${task.queue_capacity}" />
+        <!-- 线程池维护线程所允许的空闲时间，默认为60s -->
+        <property name="keepAliveSeconds" value="${task.keep_alive_seconds}" />
+    </bean>
+    <!-- 注解式 -->
+    <task:annotation-driven />
 
 	<import resource="application-datasource.xml" />
 	<import resource="application-shiro.xml" />	 
