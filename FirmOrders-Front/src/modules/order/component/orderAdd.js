@@ -258,6 +258,8 @@ class Index extends React.Component {
                 tempSelectedRow[i].number =1;
             }
         }
+
+        this.props.form.setFieldsValue({'warehouse':tempSelectedRow[0].wareHouse});
         this.setState({
             selectedRowKeys: tempSelectedRowKeys,
             selectedProduct: tempSelectedRow,
@@ -301,10 +303,7 @@ class Index extends React.Component {
         } else {
             Message.warning('产品种类最多为六种');
         }
-        if(!currentWareHouse){
-            currentWareHouse = selectedRows[0].wareHouse;
-        }
-        this.props.form.setFieldsValue({'warehouse':currentWareHouse});
+
 
     }
 
@@ -500,7 +499,7 @@ class Index extends React.Component {
                             <Row type='flex' justify="space-around" align="middle">
                                 <Col span={8}>
                                     <Search
-                                        placeholder="搜索产品名称关键字"
+                                        placeholder="产品名称"
                                         enterButton
                                         size="default"
                                         onSearch={searchText => this.setState({searchText})}
