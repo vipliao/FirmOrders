@@ -63,8 +63,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	@Autowired
 	private IWarehouseService warehouseService;
 	
-	@Autowired
-	private ThreadPoolTaskExecutor taskExecutor;
+	//@Autowired
+	//private ThreadPoolTaskExecutor taskExecutor;
 	
 	@Transactional
 	@Override
@@ -2140,7 +2140,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 
 	@Transactional
 	public Object  updateOrders(Map<String,Object> map) throws Exception {
-		Map<String,String> map1 = new ConcurrentHashMap<>();
+		/*Map<String,String> map1 = new HashMap<>();
 		map1.put("2019-02-12", "2019-02-15");
 		map1.put("2019-02-16", "2019-02-19");
 		map1.put("2019-02-20", "2019-02-23");
@@ -2148,7 +2148,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		map1.put("2019-02-28", "2019-03-03");
 		map1.put("2019-03-04", "2019-03-06");
 		long start = System.currentTimeMillis();
-		map1.forEach((k, v) -> 
+		 System.out.println("beginTIme:"+start);
+		 for (Map.Entry<String, String> entry : map1.entrySet()) { 
+			  System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue()); 
+			  doUpateCostRatioOrder(entry.getKey(),entry.getValue());
+			}*/
+		/*map1.forEach((k, v) -> {
 			taskExecutor.execute(new Runnable() {  
 			    @Override  
 			    public void run() {  
@@ -2159,28 +2164,33 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						}
 			       
 			    }  
-			})
-		);
-		 while (true){
+			});
+		});*/
+	/*	 while (true){
 	            int count = taskExecutor.getActiveCount();
-	            System.out.println("Active Threads : " + count);
+	            //System.out.println("Active Threads : " + count);
 	            if(count==0){
-	                taskExecutor.shutdown();
+	                //taskExecutor.shutdown();
 	                long end = System.currentTimeMillis();
 	                System.out.println("totalTime:"+(end-start)/1000 +"s");
 	                break; //所有线程任务执行完
 	            }
-		 }
+		 }*/
+		 
+		 doUpateCostRatioOrder((String)map.get("beginDate"),(String)map.get("endDate"));
 		return null;
 	}
 
-	private void doUpateCostRatioOrder(String beginDate, String endDate) throws Exception {
+	
+	public void doUpateCostRatioOrder(String beginDate, String endDate) throws Exception {
 		String sql = "select * from order_info where warehouse='001' and create_time between '" + beginDate
-				+ " 00:00:00' and '" + endDate + " 00:00:00'";
+				+ " 00:00:00' and '" + endDate + " 23:59:59'";
 		List<OrderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<OrderVO>(OrderVO.class));
 		List<String> upSqls = new ArrayList<>();
+		List<Object[]> batchArgs = new ArrayList<>();
 		if (CollectionUtils.isNotEmpty(list)) {
 			queryOrderProducts(list);
+			String upSql = "update order_info set cost_ratio =?,is_over_cost=?,cost_amount=? where id=?";
 			for (OrderVO order : list) {
 				order.setCostRatio(calculateCostRatio(order));
 				order.setIsOverCost(isOverCost(order) ? 0 : 1);
@@ -2189,8 +2199,19 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						+ order.getId() + "'";
 				upSqls.add(sql1);
 			}
+			/*for(int i=0;i<list.size();i++){
+				Object[] array = new Object[4];
+				array[0] = list.get(i).getCostRatio();
+				array[1] = list.get(i).getIsOverCost();
+				array[2] = list.get(i).getCostAmount();
+				array[3] = list.get(i).getId();
+				batchArgs.add(array);
+			}*/
 			if (CollectionUtils.isNotEmpty(upSqls)) {
-				jdbcTemplate.batchUpdate(upSqls.toArray(new String[upSqls.size()]));
+			/*if (CollectionUtils.isNotEmpty(batchArgs)) {*/
+				int[] re= jdbcTemplate.batchUpdate(upSqls.toArray(new String[upSqls.size()]));
+				//int[] re= jdbcTemplate.batchUpdate(upSql, batchArgs);
+				System.out.println(beginDate+"============="+upSqls.size()+""+upSqls.toString());
 			}
 		}
 	}
