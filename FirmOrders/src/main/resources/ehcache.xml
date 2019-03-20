@@ -36,6 +36,15 @@
            timeToIdleSeconds="0"
            diskPersistent="true"
            diskExpiryThreadIntervalSeconds="600"/>
+           
+            <cache name="orderCodeCache"
+           		eternal="false"
+		        maxElementsInMemory="1000"
+		        overflowToDisk="false"
+		        diskPersistent="false" 
+		        timeToIdleSeconds="0"
+		        timeToLiveSeconds="600"
+		        memoryStoreEvictionPolicy="LRU"/>
 </ehcache>
 
 

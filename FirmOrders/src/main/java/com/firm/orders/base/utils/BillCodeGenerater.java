@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,13 +83,16 @@ public class BillCodeGenerater {
 				throw new Exception("流水号位只能大于0!");
 			}
 			//Date date = new Date();
-			SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+			//SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+			String formatedDate = FastDateFormat.getInstance(dateFormat).format(date);
 			if (StringUtils.isBlank(previous)) {
 				//上一个最近编码为空
 				if (digits > 1) {
-					code = prefix + formatter.format(date) + String.format( "%0" + digits + "d", 1);
+					//code = prefix + formatter.format(date) + String.format( "%0" + digits + "d", 1);
+					code = prefix + formatedDate + String.format( "%0" + digits + "d", 1);
 				} else if (digits == 1) {
-					code = prefix + formatter.format(date) + 1;
+					//code = prefix + formatter.format(date) + 1;
+					code = prefix + formatedDate + 1;
 				}
 			}else{
 				int subBeginIndex = prefix.length() + dateFormat.length();
@@ -100,8 +104,9 @@ public class BillCodeGenerater {
 					ZEROFILL = null;
 				}
 				// 上一个最近编码是不是当月的
-				if (!formatter.format(date).equals(previousDatePart)) {
-					previousDatePart = formatter.format(date);
+				//if (!formatter.format(date).equals(previousDatePart)) {
+				if (!formatedDate.equals(previousDatePart)) {
+					previousDatePart = formatedDate;
 					//上一个最近编码不是当月,则取当月日期+(serialDigits-1)个0+1,如:S7001180921001
 					if (ZEROFILL != null) {
 						code = prefix + previousDatePart + String.format(ZEROFILL, 1);
@@ -112,7 +117,9 @@ public class BillCodeGenerater {
 				} else {
 					if (ZEROFILL != null) {
 						// 上一个最近编码当月，则累加
-						code = prefix + formatter.format(date)
+						//code = prefix + formatter.format(date)
+						//		+ String.format(ZEROFILL, 1 + Integer.parseInt(previous.substring(subBeginIndex)));
+						code = prefix + formatedDate
 								+ String.format(ZEROFILL, 1 + Integer.parseInt(previous.substring(subBeginIndex)));
 					} else {
 						code = prefix + previousDatePart + (1 + Integer.parseInt(previous.substring(subBeginIndex)));

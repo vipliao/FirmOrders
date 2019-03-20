@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ import com.firm.orders.base.entity.SuperEntity;
 import com.firm.orders.base.service.impl.BaseServiceImpl;
 import com.firm.orders.base.utils.BeanHelper;
 import com.firm.orders.base.utils.BillCodeGenerater;
+import com.firm.orders.base.utils.EhCacheUtil;
 import com.firm.orders.base.utils.JavaUuidGenerater;
 import com.firm.orders.base.utils.PoiHelper;
 import com.firm.orders.base.utils.PoiHelper.ExportDataObject;
@@ -327,6 +329,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					//德邦
 					costAmount = (sumProductCost.add(new BigDecimal(5.5))
 							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
+				}else if(vo.getExpressCompany()==5) {
+					//联邦
+					costAmount = sumProductCost.add(new BigDecimal(5.5));
 				}
 				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
 			}else if(warehouseVO.getBizRange()==2){
@@ -436,15 +441,35 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			prefix = "S7001";
 			digits=4;
 		}
-		String deliverDateStr = new SimpleDateFormat("yyMMdd").format(deliverDate);
-		String sql = "select max(order_code) from order_info where order_code like '"+prefix+deliverDateStr+"%'";
-		List<String> list = jdbcTemplate.queryForList(sql,String.class);
-		if(list!=null && !list.isEmpty()){
-			return BillCodeGenerater.generaterBillCode(prefix,deliverDate, "yyMMdd",digits,list.get(0));
-		}else{
-			return BillCodeGenerater.generaterBillCode(prefix,deliverDate, "yyMMdd",digits,null);
-		}
+		/*
+		 * String deliverDateStr = new SimpleDateFormat("yyMMdd").format(deliverDate);
+		 * String sql =
+		 * "select max(order_code) from order_info where order_code like '"+prefix+
+		 * deliverDateStr+"%'"; List<String> list =
+		 * jdbcTemplate.queryForList(sql,String.class); if(list!=null &&
+		 * !list.isEmpty()){ return
+		 * BillCodeGenerater.generaterBillCode(prefix,deliverDate,
+		 * "yyMMdd",digits,list.get(0)); }else{ return
+		 * BillCodeGenerater.generaterBillCode(prefix,deliverDate,
+		 * "yyMMdd",digits,null); }
+		 */
 		
+		String orderCode =null;
+		String deliverDateStr = FastDateFormat.getInstance("yyMMdd").format(deliverDate);
+		String currentorderCode = (String) EhCacheUtil.getInstance().get("orderCodeCache", prefix+deliverDateStr);
+		if(StringUtils.isBlank(currentorderCode)){
+			String sql = "select max(order_code) from order_info where order_code like '"+prefix+deliverDateStr+"%'";
+			List<String> list = jdbcTemplate.queryForList(sql,String.class);
+			if(list!=null && !list.isEmpty()){
+				orderCode = BillCodeGenerater.generaterBillCode(prefix,deliverDate, "yyMMdd",digits,list.get(0));
+			}else{
+				orderCode = BillCodeGenerater.generaterBillCode(prefix,deliverDate, "yyMMdd",digits,null);
+			}
+		}else{
+			orderCode = BillCodeGenerater.generaterBillCode(prefix, deliverDate, "yyMMdd", digits,currentorderCode);
+		}
+		EhCacheUtil.getInstance().put("orderCodeCache", prefix+deliverDateStr, orderCode);
+		return orderCode;
 	}
 	
 	private List<OrderVO> queryOrderProducts(List<OrderVO> orders) throws Exception {
