@@ -821,10 +821,10 @@ class Index extends React.Component {
                                             <Select>
                                                 <Option key='0' value={0}>顺丰</Option>
                                                 <Option key='1' value={1}>邮政</Option>
-                                                <Option key='0' value={2}>圆通</Option>
-                                                <Option key='1' value={3}>中通</Option>
-                                                <Option key='0' value={4}>德邦</Option>
-                                                <Option key='1' value={5}>联邦</Option>
+                                                <Option key='2' value={2}>圆通</Option>
+                                                <Option key='3' value={3}>中通</Option>
+                                                <Option key='4' value={4}>德邦</Option>
+                                                <Option key='5' value={5}>联邦</Option>
                                             </Select>
                                         )}
                                     </FormItem>

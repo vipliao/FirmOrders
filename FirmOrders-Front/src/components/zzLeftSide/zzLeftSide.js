@@ -8,7 +8,7 @@ import {admin, subAdmin, operator} from './authority';
 import menuTree from './menu';
 import './zzLeftSide.less';
 
-import Logo from 'Img/logo.png';
+import Logo from 'Img/logo2.png';
 
 const {Sider} = Layout;
 const SubMenu = Menu.SubMenu;
