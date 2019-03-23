@@ -102,12 +102,12 @@ class Login extends React.Component {
                 <div className="login-box">
                     <Row>
                         <Col span={13} style={{height: '400px', backgroundColor: 'rgba(85, 120, 220, .65)'}}>
-                            <div style={{margin: '40px 0 30px', textAlign: 'center'}}>
+                            <div style={{margin: '46px 0px 40px', textAlign: 'center'}}>
                                 {/*<Icon type="windows" theme='filled' style={{fontSize: 90, color: '#fff'}}/>*/}
-                                <img src={Logo} style={{width: '50%'}}/>
+                                <img src={Logo} style={{width: '46%'}}/>
                             </div>
                             <div
-                                style={{ textAlign: 'center', fontSize: 32, color: '#fff'}}>订单管理系统
+                                style={{ textAlign: 'center', fontSize: 28, color: '#fff'}}>订单管理系统
                             </div>
                         </Col>
                         <Col span={11} style={{height: '400px', padding: '20px 35px', backgroundColor: '#fff'}}>

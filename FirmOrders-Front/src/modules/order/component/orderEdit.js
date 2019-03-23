@@ -483,6 +483,15 @@ class Index extends React.Component {
         }
     }
 
+    validateBlankSpace = (rule, value, callback)=>{
+        const reg = /^[^\s]*$/;
+        if (value && value !== '' && !reg.test(value)) {
+            callback(new Error('输入的数据存在空格'));
+        } else {
+            callback();
+        }
+    }
+
     handleSubmit = (e) => {
         e.preventDefault();
         this.props.form.validateFields((err, values) => {
@@ -717,7 +726,10 @@ class Index extends React.Component {
                                             label="广告渠道"
                                         >
                                             {getFieldDecorator('advertChannel', {
-                                                rules: [{required: true, message: '请输入广告渠道'}],
+                                                rules: [
+                                                    {required: true, message: '请输入广告渠道'},
+                                                    {validator:this.validateBlankSpace}
+                                                    ],
                                                 initialValue: data.advertChannel
                                             })(
                                                 <Input/>
@@ -730,7 +742,10 @@ class Index extends React.Component {
                                             label="订单性质"
                                         >
                                             {getFieldDecorator('orderNature', {
-                                                rules: [{required: true, message: '请输入订单性质'}],
+                                                rules: [
+                                                    {required: true, message: '请输入订单性质'},
+                                                    {validator:this.validateBlankSpace}
+                                                    ],
                                                 initialValue: data.orderNature
                                             })(
                                                 <Input/>
@@ -771,7 +786,10 @@ class Index extends React.Component {
                                             label="成单微信号"
                                         >
                                             {getFieldDecorator('orderWechatCode', {
-                                                rules: [{required: true, message: '请输入成单微信号'}],
+                                                rules: [
+                                                    {required: true, message: '请输入成单微信号'},
+                                                    {validator:this.validateBlankSpace}
+                                                ],
                                                 initialValue: data.orderWechatCode
                                             })(
                                                 <Input/>
@@ -987,7 +1005,10 @@ class Index extends React.Component {
                                             label="收件人"
                                         >
                                             {getFieldDecorator('receiverName', {
-                                                rules: [{required: true, message: '请输入收件人'}],
+                                                rules: [
+                                                    {required: true, message: '请输入收件人'},
+                                                    {validator:this.validateBlankSpace}
+                                                    ],
                                                 initialValue: data.receiverName
                                             })(
                                                 <Input/>
