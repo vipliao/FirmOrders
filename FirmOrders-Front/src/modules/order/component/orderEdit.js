@@ -15,7 +15,6 @@ import {
     Icon,
     DatePicker,
     Notification,
-    Message,
     Popconfirm,
     Alert,
     Radio
@@ -67,7 +66,15 @@ class Index extends React.Component {
             isInEdit: true,
             submitLoading: false,
             warehouseLoading:false,
-            warehouseList:[]
+            warehouseList:[],
+            optionValues:[
+                (<Option key='2' value={2}>圆通</Option>),
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>),
+                (<Option key='3' value={3}>中通</Option>),
+                (<Option key='4' value={4}>德邦</Option>),
+                (<Option key='5' value={5}>联邦</Option>)
+            ],
         };
 
         this.productColumns = [
@@ -361,6 +368,29 @@ class Index extends React.Component {
             currentWareHouse = this.state.tempSelectedRow
             && this.state.tempSelectedRow.length>0 ?this.state.tempSelectedRow[0].wareHouse:null;
         }
+        let optionValues=[];
+        if(currentWareHouse=="004"){
+            optionValues=[
+                (<Option key='2' value={2}>圆通</Option>),
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>),
+                (<Option key='4' value={4}>德邦</Option>),
+                (<Option key='5' value={5}>联邦</Option>)
+            ]
+
+        }else{
+            optionValues=[
+                (<Option key='2' value={2}>圆通</Option>),
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>),
+                (<Option key='3' value={3}>中通</Option>),
+                (<Option key='4' value={4}>德邦</Option>),
+                (<Option key='5' value={5}>联邦</Option>)
+            ]
+        }
+        this.setState({
+            optionValues :optionValues
+        });
         let warehouseList=this.state.warehouseList?this.state.warehouseList:[];
         let houseName='';
         if(warehouseList){
@@ -558,6 +588,29 @@ class Index extends React.Component {
                     this.props.form.setFieldsValue({'warehouse':wareHouse});
                 }
             }
+            let optionValues=[];
+            if(value=="004"){
+                optionValues=[
+                    (<Option key='2' value={2}>圆通</Option>),
+                    (<Option key='0' value={0}>顺丰</Option>),
+                    (<Option key='1' value={1}>邮政</Option>),
+                    (<Option key='4' value={4}>德邦</Option>),
+                    (<Option key='5' value={5}>联邦</Option>)
+                ]
+
+            }else{
+                optionValues=[
+                    (<Option key='2' value={2}>圆通</Option>),
+                    (<Option key='0' value={0}>顺丰</Option>),
+                    (<Option key='1' value={1}>邮政</Option>),
+                    (<Option key='3' value={3}>中通</Option>),
+                    (<Option key='4' value={4}>德邦</Option>),
+                    (<Option key='5' value={5}>联邦</Option>)
+                ]
+            }
+            this.setState({
+                optionValues :optionValues
+            });
         }
     }
     render() {
@@ -924,12 +977,7 @@ class Index extends React.Component {
                                                 initialValue: data.expressCompany
                                             })(
                                                 <Select>
-                                                    <Option key='0' value={0}>顺丰</Option>
-                                                    <Option key='1' value={1}>邮政</Option>
-                                                    <Option key='2' value={2}>圆通</Option>
-                                                    <Option key='3' value={3}>中通</Option>
-                                                    <Option key='4' value={4}>德邦</Option>
-                                                    <Option key='5' value={5}>联邦</Option>
+                                                    {this.state.optionValues}
                                                 </Select>
                                             )}
                                         </FormItem>
