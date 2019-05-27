@@ -17,9 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CorsConfig implements Filter {
 
-	@Value("${httpheader.authorization}")
-	private String authorization;
-	
+
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 	}
@@ -35,7 +33,7 @@ public class CorsConfig implements Filter {
 		httpResponse.setHeader("Access-Control-Max-Age", "3600");
 		httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
 		httpResponse.setHeader("Access-Control-Allow-Headers",
-				"x-requested-with,Access-Control,Content-Type,x-auth-token");
+				"x-requested-with,Access-Control,Content-Type");
 		//httpResponse.setHeader("Access-Control-Expose-Headers","Content-Disposition");
 
 		chain.doFilter(request, response);

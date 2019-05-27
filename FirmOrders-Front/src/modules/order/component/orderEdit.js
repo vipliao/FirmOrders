@@ -16,6 +16,7 @@ import {
     DatePicker,
     Notification,
     Popconfirm,
+    Message,
     Alert,
     Radio
 } from 'antd';
@@ -409,14 +410,14 @@ class Index extends React.Component {
             Message.warning(`当前订单仓库为${houseName},选中产品仓库不匹配！`);
             return;
         }
-        if (selectedNum <= 6) {
+        /*if (selectedNum <= 6) {
             this.setState({
                 tempSelectedRowKeys: selectedRowKeys,
                 tempSelectedRow: this.state.tempSelectedRow.concat(selectedRows)
             });
-        } else {
+        } else {*/
             Message.warning('产品种类最多为六种');
-        }
+        //}
         if(!currentWareHouse){
             currentWareHouse = selectedRows[0].wareHouse;
         }
@@ -613,6 +614,32 @@ class Index extends React.Component {
             });
         }
     }
+
+    /**
+     * 日期比较
+     * @param date1
+     * @param date2
+     * @returns {boolean}
+     */
+    compareDate = (date1,date2) =>{
+        if(!date1 || !date2){
+            return true;
+        }
+        let result = false;
+        if(date1.getFullYear()>date2.getFullYear()){
+            result = true;
+        }else if(date1.getFullYear() ==  date2.getFullYear()){
+            if(date1.getMonth() > date2.getMonth()){
+                result = true;
+            }else if(date1.getMonth() ==  date2.getMonth()){
+                if(date1.getDate() > date2.getDate()){
+                    result = true;
+                }
+            }
+        }
+        return result;
+    }
+
     render() {
         const {getFieldDecorator} = this.props.form;
         const {data, selectedProduct, canEdit, isInEdit, showTips, warehouseLoading,warehouseList,tempSelectedRowKeys, isOperator, pagination, allProduct, loading, submitLoading, showModal} = this.state;
@@ -1078,6 +1105,62 @@ class Index extends React.Component {
                                             )}
                                         </FormItem>
                                     </Col>
+
+                                    <Col {...itemGrid}>
+                                        <FormItem
+                                            {...formItemLayout}
+                                            label="收件人地址省"
+                                        >
+                                            {getFieldDecorator('receiverProvince', {
+                                                rules: [
+                                                    {
+                                                        required: this.compareDate(new Date(data.deliverDate),new Date("2019-04-21")),
+                                                        message: '请输入收件人地址省'
+                                                    }
+                                                    ],
+                                                initialValue: data.receiverProvince
+                                            })(
+                                                <Input/>
+                                            )}
+                                        </FormItem>
+                                    </Col>
+                                    <Col {...itemGrid}>
+                                        <FormItem
+                                            {...formItemLayout}
+                                            label="收件人地址市"
+                                        >
+                                            {getFieldDecorator('receiverCity', {
+                                                rules: [
+                                                    {
+                                                        required: this.compareDate(new Date(data.deliverDate),new Date("2019-04-21")),
+                                                        message: '请输入收件人收件人地址市'
+                                                    }
+                                                    ],
+                                                initialValue: data.receiverCity
+                                            })(
+                                                <Input/>
+                                            )}
+                                        </FormItem>
+                                    </Col>
+                                    <Col {...itemGrid}>
+                                        <FormItem
+                                            {...formItemLayout}
+                                            label="收件人地址区"
+                                        >
+                                            {getFieldDecorator('receiverArea', {
+                                                rules: [
+                                                    {
+                                                        required: this.compareDate(new Date(data.deliverDate),new Date("2019-04-21")),
+                                                        message: '请输入收件人收件人地址区'
+                                                    }
+                                                    ],
+                                                initialValue: data.receiverArea
+                                            })(
+                                                <Input/>
+                                            )}
+                                        </FormItem>
+                                    </Col>
+
                                     <Col {...itemGrid}>
                                         <FormItem
                                             {...formItemLayout}

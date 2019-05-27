@@ -57,6 +57,12 @@ public class OrderEntity extends SuperEntity{
 	
 	@Column(name="receiver_phone")
 	private String receiverPhone;
+	@Column(name="receiver_area")
+	private String receiverArea;
+	@Column(name="receiver_city")
+	private String receiverCity;
+	@Column(name="receiver_province")
+	private String receiverProvince;
 	
 	@Column(name="receiver_addr")
 	private String receiverAddr;
@@ -315,6 +321,30 @@ public class OrderEntity extends SuperEntity{
 
 	public void setExpressCompany(int expressCompany) {
 		this.expressCompany = expressCompany;
+	}
+
+	public String getReceiverArea() {
+		return receiverArea;
+	}
+
+	public void setReceiverArea(String receiverArea) {
+		this.receiverArea = receiverArea;
+	}
+
+	public String getReceiverCity() {
+		return receiverCity;
+	}
+
+	public void setReceiverCity(String receiverCity) {
+		this.receiverCity = receiverCity;
+	}
+
+	public String getReceiverProvince() {
+		return receiverProvince;
+	}
+
+	public void setReceiverProvince(String receiverProvince) {
+		this.receiverProvince = receiverProvince;
 	}
 
 }
