@@ -327,14 +327,14 @@ class Index extends React.Component {
             Message.warning(`当前订单仓库为${houseName},选中产品仓库不匹配！`);
             return;
         }
-        if (selectedNum <= 6) {
+       /* if (selectedNum <= 6) {*/
             this.setState({
                 tempSelectedRowKeys: selectedRowKeys,
                 tempSelectedRow: this.state.tempSelectedRow.concat(selectedRows)
             });
-        } else {
+       /* } else {
             Message.warning('产品种类最多为六种');
-        }
+        }*/
 
 
     }
