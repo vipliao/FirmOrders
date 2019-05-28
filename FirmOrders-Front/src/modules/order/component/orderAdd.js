@@ -327,7 +327,7 @@ class Index extends React.Component {
             Message.warning(`当前订单仓库为${houseName},选中产品仓库不匹配！`);
             return;
         }
-       /* if (selectedNum <= 6) {*/
+        //if (selectedNum <= 6) {
             this.setState({
                 tempSelectedRowKeys: selectedRowKeys,
                 tempSelectedRow: this.state.tempSelectedRow.concat(selectedRows)
@@ -508,6 +508,7 @@ class Index extends React.Component {
             });
         }
     }
+
 
     render() {
         const {getFieldDecorator} = this.props.form;
@@ -961,6 +962,58 @@ class Index extends React.Component {
                                                 {required: true, message: '请输入收件人手机号'},
                                                 {validator: this.validatePhone,}
                                                 ]
+                                        })(
+                                            <Input/>
+                                        )}
+                                    </FormItem>
+                                </Col>
+
+                                <Col {...itemGrid}>
+                                    <FormItem
+                                        {...formItemLayout}
+                                        label="收件人地址省"
+                                    >
+                                        {getFieldDecorator('receiverProvince', {
+                                            rules: [
+                                                {
+                                                    required: true,
+                                                    message: '请输入收件人地址省'
+                                                }
+                                            ],
+                                        })(
+                                            <Input/>
+                                        )}
+                                    </FormItem>
+                                </Col>
+                                <Col {...itemGrid}>
+                                    <FormItem
+                                        {...formItemLayout}
+                                        label="收件人地址市"
+                                    >
+                                        {getFieldDecorator('receiverCity', {
+                                            rules: [
+                                                {
+                                                    required: true,
+                                                    message: '请输入收件人收件人地址市'
+                                                }
+                                            ],
+                                        })(
+                                            <Input/>
+                                        )}
+                                    </FormItem>
+                                </Col>
+                                <Col {...itemGrid}>
+                                    <FormItem
+                                        {...formItemLayout}
+                                        label="收件人地址区"
+                                    >
+                                        {getFieldDecorator('receiverArea', {
+                                            rules: [
+                                                {
+                                                    required: true,
+                                                    message: '请输入收件人收件人地址区'
+                                                }
+                                            ],
                                         })(
                                             <Input/>
                                         )}

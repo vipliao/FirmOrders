@@ -32,6 +32,9 @@ public class OrderVO extends SuperVO{
 	private Date deliverDate;
 	private String receiverName;
 	private String receiverPhone;
+	private String receiverArea;
+	private String receiverCity;
+	private String receiverProvince;
 	private String receiverAddr;
 	private String advertChannel;
 	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
@@ -281,4 +284,29 @@ public class OrderVO extends SuperVO{
 	public void setWarehouseName(String warehouseName) {
 		this.warehouseName = warehouseName;
 	}
+
+	public String getReceiverArea() {
+		return receiverArea;
+	}
+
+	public void setReceiverArea(String receiverArea) {
+		this.receiverArea = receiverArea;
+	}
+
+	public String getReceiverCity() {
+		return receiverCity;
+	}
+
+	public void setReceiverCity(String receiverCity) {
+		this.receiverCity = receiverCity;
+	}
+
+	public String getReceiverProvince() {
+		return receiverProvince;
+	}
+
+	public void setReceiverProvince(String receiverProvince) {
+		this.receiverProvince = receiverProvince;
+	}
+	
 }
