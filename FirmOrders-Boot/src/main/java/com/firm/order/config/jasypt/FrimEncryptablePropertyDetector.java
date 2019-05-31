@@ -1,7 +1,5 @@
 package com.firm.order.config.jasypt;
 
-import org.springframework.context.annotation.Bean;
-
 import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyDetector;
 
 public class FrimEncryptablePropertyDetector implements EncryptablePropertyDetector {

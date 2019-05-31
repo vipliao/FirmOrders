@@ -33,7 +33,7 @@ public class CorsConfig implements Filter {
 		httpResponse.setHeader("Access-Control-Max-Age", "3600");
 		httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
 		httpResponse.setHeader("Access-Control-Allow-Headers",
-				"x-requested-with,Access-Control,Content-Type");
+				"x-requested-with,Access-Control,Content-Type,x-auth-token");
 		//httpResponse.setHeader("Access-Control-Expose-Headers","Content-Disposition");
 
 		chain.doFilter(request, response);

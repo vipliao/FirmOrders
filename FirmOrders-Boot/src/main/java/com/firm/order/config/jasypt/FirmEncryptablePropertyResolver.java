@@ -1,7 +1,6 @@
 package com.firm.order.config.jasypt;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 
 import com.firm.order.utils.SymmetricEncoder;
 import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyResolver;
