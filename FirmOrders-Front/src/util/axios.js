@@ -27,7 +27,7 @@ axios.interceptors.request.use(config => {
     if(token){
         config.headers['X-Auth-Token'] = `${token}`;
     }
-  /*  if(token){
+  /*   if(token){
         let signstr = Sign(token, timestamp, config.data);
         console.log('token', token);
         console.log('signstr', signstr);
