@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +22,10 @@ import com.firm.order.modules.warehouse.service.IWarehouseService;
 import com.firm.order.modules.warehouse.vo.WarehouseVO;
 import com.firm.order.utils.JsonBackData;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Controller
 @RequestMapping(value = "warehouse")
-@Slf4j
 public class WarehouseController {
+	private static Logger logger = LoggerFactory.getLogger(WarehouseController.class);
 	@Autowired
 	private IWarehouseService service;
 	
@@ -44,7 +43,7 @@ public class WarehouseController {
 					int iPageNumber = Integer.parseInt(pageNumber);
 					if (!StringUtils.isEmpty(sortField) && !StringUtils.isEmpty(sortType)) {
 						pageable = new PageRequest(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize),
-								Direction.fromString(sortType), sortField);
+								null, sortField);
 					} else {
 						pageable = new PageRequest(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize));
 					}
@@ -55,7 +54,7 @@ public class WarehouseController {
 				back.setBackMsg("查询仓库列表成功！");
 			
 		}catch (Exception e) {
-			log.error("查询仓库列表方法：", e);
+			logger.error("查询仓库列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询仓库失败,"+e.getMessage());
 		}
@@ -73,7 +72,7 @@ public class WarehouseController {
 				back.setBackMsg("查询仓库信息成功！");
 			
 		}catch (Exception e) {
-			log.error("查询仓库信息方法：", e);
+			logger.error("查询仓库信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询仓库信息失败,"+e.getMessage());
 		}
@@ -95,7 +94,7 @@ public class WarehouseController {
 			back.setBackMsg("删除仓库信息成功！");
 			
 		}catch (Exception e) {
-			log.error("删除仓库信息方法：", e);
+			logger.error("删除仓库信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除仓库信息失败,"+e.getMessage());
 		}
@@ -111,12 +110,12 @@ public class WarehouseController {
 			WarehouseVO reVO = service.save(vo, WarehouseEntity.class, WarehouseVO.class);
 			back.setBackData(reVO);
 			back.setSuccess(true);
-			back.setBackMsg("产品信息保存成功！");
+			back.setBackMsg("仓库信息保存成功！");
 
 		} catch (Exception e) {
-			log.error("产品信息保存方法：", e);
+			logger.error("仓库信息保存方法：", e);
 			back.setSuccess(false);
-			back.setBackMsg("产品信息保存失败," + e.getMessage());
+			back.setBackMsg("仓库信息保存失败," + e.getMessage());
 		}
 		return back;
 	}
@@ -133,7 +132,7 @@ public class WarehouseController {
 			back.setBackMsg("仓库信息保存成功！");
 
 		} catch (Exception e) {
-			log.error("仓库信息保存方法：", e);
+			logger.error("仓库信息保存方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("仓库信息保存失败," + e.getMessage());
 		}

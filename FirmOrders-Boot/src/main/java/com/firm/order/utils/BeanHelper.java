@@ -22,6 +22,7 @@ import org.springframework.cglib.beans.BeanMap;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.firm.order.utils.BeanHelper.ReflectionInfo;
 
 public class BeanHelper {
 	private final static Logger logger = LoggerFactory.getLogger(BeanHelper.class);
@@ -163,7 +164,7 @@ public class BeanHelper {
 	}
 
 	protected static final Object[] NULL_ARGUMENTS = new Object[0];
-	private static Map<String, BeanHelper.ReflectionInfo> cache = new ConcurrentHashMap();
+	private static Map<String, BeanHelper.ReflectionInfo> cache = new ConcurrentHashMap<String, ReflectionInfo>();
 	private static BeanHelper bhelp = new BeanHelper();
 
 	public static BeanHelper getInstance() {

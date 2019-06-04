@@ -6,13 +6,13 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name="sender_info")
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class SenderEntity extends SuperEntity{
 
 	/**
@@ -28,4 +28,7 @@ public class SenderEntity extends SuperEntity{
 	private String senderAddr;
 	@Column(name="is_enabled")
 	private int isEnabled;
+	@Column(name="biz_range")
+	private int bizRange;
+
 }

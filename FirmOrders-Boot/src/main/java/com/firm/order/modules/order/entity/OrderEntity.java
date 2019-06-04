@@ -10,13 +10,13 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name="order_info")
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class OrderEntity extends SuperEntity{
 
 	/**
@@ -35,7 +35,7 @@ public class OrderEntity extends SuperEntity{
 	@Column(name="order_code")
 	private String orderCode;
 	
-	private int warehouse;
+	private String warehouse;
 	
 	@Column(name="order_nature")
 	private String orderNature;
@@ -62,6 +62,12 @@ public class OrderEntity extends SuperEntity{
 	
 	@Column(name="receiver_phone")
 	private String receiverPhone;
+	@Column(name="receiver_area")
+	private String receiverArea;
+	@Column(name="receiver_city")
+	private String receiverCity;
+	@Column(name="receiver_province")
+	private String receiverProvince;
 	
 	@Column(name="receiver_addr")
 	private String receiverAddr;
@@ -105,5 +111,6 @@ public class OrderEntity extends SuperEntity{
 	
 	@Column(name="express_company")
 	private int expressCompany;
+
 
 }

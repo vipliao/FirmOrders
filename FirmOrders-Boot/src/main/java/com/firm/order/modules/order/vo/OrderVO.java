@@ -8,12 +8,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.firm.order.modules.base.vo.SuperVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class OrderVO extends SuperVO{
 
 	/**
@@ -24,7 +23,10 @@ public class OrderVO extends SuperVO{
 	private String userId;
 	private String userName;
 	private String orderCode;
-	private int warehouse;
+	private String warehouse;
+	
+	private String warehouseName;
+	
 	private String orderNature;
 	private String serderPhone;
 	private String senderAddr;
@@ -35,6 +37,9 @@ public class OrderVO extends SuperVO{
 	private Date deliverDate;
 	private String receiverName;
 	private String receiverPhone;
+	private String receiverArea;
+	private String receiverCity;
+	private String receiverProvince;
 	private String receiverAddr;
 	private String advertChannel;
 	@JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
@@ -54,5 +59,4 @@ public class OrderVO extends SuperVO{
 	List<OrderProductVO> childrenDetail = new ArrayList<>();
 	
 	
-
 }

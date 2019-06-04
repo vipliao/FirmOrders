@@ -1,7 +1,10 @@
 package com.firm.order.modules.sender.controller;
 
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,13 +22,11 @@ import com.firm.order.modules.sender.service.ISenderService;
 import com.firm.order.modules.sender.vo.SenderVO;
 import com.firm.order.utils.JsonBackData;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Controller
 @RequestMapping(value="sender")
-@Slf4j
 public class SenderController {
 
+	private static Logger logger = LoggerFactory.getLogger(SenderController.class);
 	
 	@Autowired
 	private ISenderService service;
@@ -42,7 +43,7 @@ public class SenderController {
 			back.setBackMsg("用户信息保存成功！");
 
 		} catch (Exception e) {
-			log.error("用户信息保存方法：", e);
+			logger.error("用户信息保存方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("用户信息保存失败," + e.getMessage());
 		}
@@ -60,7 +61,7 @@ public class SenderController {
 				back.setBackMsg("查询寄件信息成功！");
 			
 		}catch (Exception e) {
-			log.error("查询寄件信息方法：", e);
+			logger.error("查询寄件信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询寄件信息失败,"+e.getMessage());
 		}
@@ -92,7 +93,7 @@ public class SenderController {
 				back.setBackMsg("查询寄件信息列表成功！");
 			
 		}catch (Exception e) {
-			log.error("查询寄件信息列表方法：", e);
+			logger.error("查询寄件信息列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询寄件信息列表失败,"+e.getMessage());
 		}
@@ -114,7 +115,7 @@ public class SenderController {
 				back.setSuccess(true);
 				back.setBackMsg("删除寄件信息成功！");					
 		}catch (Exception e) {
-			log.error("删除寄件信息方法：", e);
+			logger.error("删除寄件信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除寄件信息失败,"+e.getMessage());
 		}
@@ -149,7 +150,7 @@ public class SenderController {
 				back.setSuccess(true);
 				back.setBackMsg("启用/停用寄件信息成功！");					
 		}catch (Exception e) {
-			log.error("启用/停用寄件信息方法：", e);
+			logger.error("启用/停用寄件信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("启用/停用寄件信息失败,"+e.getMessage());
 		}

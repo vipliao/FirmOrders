@@ -17,7 +17,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CorsConfig implements Filter {
 
-
+	@Value("${httpheader.authorization}")
+	private String authorization;
+	
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 	}
@@ -38,9 +40,5 @@ public class CorsConfig implements Filter {
 
 		chain.doFilter(request, response);
 
-	}
-
-	@Override
-	public void destroy() {
 	}
 }

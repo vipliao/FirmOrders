@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.firm.order.modules.assessory.service.IAssessoryService;
 import com.firm.order.modules.assessory.vo.AssessoryVO;
 import com.firm.order.modules.base.service.impl.BaseServiceImpl;
-import com.firm.order.modules.role.service.IRoleService;
 import com.firm.order.modules.role.vo.RoleVO;
 import com.firm.order.modules.user.entity.UserEntity;
 import com.firm.order.modules.user.service.IUserService;
@@ -47,8 +46,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	@Autowired
 	private IAssessoryService assessoryService;
 	
-	@Autowired
-	private IRoleService roleService;
 	
 	@Value("${encrypt.encodeRules}")
 	private String encodeRules;
@@ -108,7 +105,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 
 	@Override
 	public UserVO queryUserByPhoneOrCode(String code) throws Exception {
-		String sql = "select u.*,r.role_code roleCode,r.role_name roleName from user_info u left join role_info r on u.role_id=r.id where 1=1 and  (u.phone='"
+		String sql = "select u.*,r.role_code roleCode,r.role_name roleName,r.level roleLevel,r.biz_range roleBizRange from user_info u left join role_info r on u.role_id=r.id where 1=1 and  (u.phone='"
 				+ code + "' or u.user_code='" + code + "')";
 		List<UserVO> users = jdbcTemplate.query(sql, new BeanPropertyRowMapper<UserVO>(UserVO.class));
 		if(users == null || users.size()<=0){
@@ -133,7 +130,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	
 	@Override
 	public UserVO findVOById(String id, Class<UserVO> cls) throws Exception {
-		String sql = "select u.*,r.role_code roleCode,r.role_name roleName from user_info u left join role_info r on u.role_id=r.id where 1=1 and u.id='"
+		String sql = "select u.*,r.role_code roleCode,r.role_name roleName,r.level roleLevel,r.biz_range roleBizRange from user_info u left join role_info r on u.role_id=r.id where 1=1 and u.id='"
 				+ id + "'";
 		List<UserVO> users = jdbcTemplate.query(sql, new BeanPropertyRowMapper<UserVO>(UserVO.class));
 		if(users==null || users.size()<=0){
@@ -150,7 +147,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	@Override
 	public Page<UserVO> queryUserList(Pageable pageable, Map<String, Object> map) throws Exception {
 		StringBuilder sql = new StringBuilder();
-		sql.append("select u.*,r.role_code roleCode,r.role_name roleName from user_info u left join role_info r on u.role_id=r.id where 1=1");
+		sql.append("select u.*,r.role_code roleCode,r.role_name roleName,r.level roleLevel,r.biz_range roleBizRange from user_info u left join role_info r on u.role_id=r.id where 1=1");
 		if(map !=null){
 			if(map.containsKey("keyWords")){
 				String keyWords = (String) map.get("keyWords");
@@ -168,6 +165,19 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			}
 		}
 		sql.append(" and u.role_id  <> (select role.id from role_info role where role.role_code='001')");
+		
+		if (getCurrentUser().getRoleLevel() == 2) {//二级管理员
+			sql.append(" and r.biz_range= " + getCurrentUser().getRoleBizRange());
+		}
+		if (getCurrentUser().getRoleLevel() == 3) {//三级管理员
+			sql.append(" and r.biz_range= " + getCurrentUser().getRoleBizRange());
+			sql.append(" and u.region like '" + getCurrentUser().getRegion()+"%'");
+		}
+		if (getCurrentUser().getRoleLevel() == 4) {//业务员
+			sql.append(" and u.id='" + getCurrentUser().getId() + "'");
+		}
+		
+		
 		sql.append(" order by u.create_time desc");
 		int total =  getTotalCount(sql.toString());
 		if(pageable != null){
@@ -198,6 +208,20 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		}
 		if (vo.getPhone() == null || vo.getPhone().equals("")) {
 			throw new Exception("phone没有数据!");
+		}
+		UserVO userVO = getCurrentUser();
+		RoleVO preUserRole = queryUserRole(vo);
+		if(userVO ==null) {
+			throw new Exception("没有权限保存此用户的数据！");
+		} 
+		if(userVO.getRoleLevel()>=2){
+			if(userVO.getRoleBizRange() != preUserRole.getBizRange()) {
+				throw new Exception("没有权限保存此角色用户的数据！");
+			}
+			if(userVO.getRoleLevel()==3 && !vo.getRegion().startsWith(userVO.getRegion())){
+				throw new Exception("没有权限保存此区域用户的数据！");
+			}
+			
 		}
 		UserVO vo1 = new UserVO(); 
 		BeanUtils.copyProperties(vo,vo1);
@@ -238,6 +262,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			vo1.setPassword(users.get(0).getPassword());
 			vo1.setCreateTime(users.get(0).getCreateTime());
 		}
+		
+		vo1.setRegion(vo1.getRegion().trim());
+		
 		UserVO user = super.save(vo1, clazzE, clazzV);
 		user.setChildrenDetail(vo1.getChildrenDetail());
 		saveUserOwnResources(user.getId(),user.getChildrenDetail());
@@ -246,10 +273,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 				List<String> delAIds= new ArrayList<>();
 				List<String> addAIds = new ArrayList<>();
 				for(AssessoryVO avo:vo1.getAssessorys()){
-					if(avo.getDr()==1){
-						delAIds.add(avo.getId());
-					}else if(avo.getBusinessId() ==null || avo.getBusinessId().equals("")){
-						addAIds.add(avo.getId());
+					if(avo !=null) {
+						if(avo.getDr()==1){
+							delAIds.add(avo.getId());
+						}else if(avo.getBusinessId() ==null || avo.getBusinessId().equals("")){
+							addAIds.add(avo.getId());
+						}
 					}
 				}
 				if(delAIds !=null && delAIds.size()>0){
@@ -292,6 +321,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 					if (b.getRoleId().equals(vo.getId())) {
 						b.setRoleCode(vo.getRoleCode());
 						b.setRoleName(vo.getRoleName());
+						b.setRoleLevel(vo.getLevel());
 					}
 					
 				}
@@ -299,6 +329,15 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		}
 		return users;
 		
+	}
+	
+	private RoleVO queryUserRole(UserVO user) throws Exception {
+		if (user == null) {
+			return null;
+		}
+		String sql = "select * from role_info where id = '" + user.getRoleId() + "'";
+		List<RoleVO> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<RoleVO>(RoleVO.class));
+		return list.get(0);
 	}
 
 	private List<UserVO> queryOwnResources(List<UserVO> users) throws Exception {
@@ -558,17 +597,35 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		String currentUserId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser")).getId();
 		String currentUserName =  (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser")).getUserName();
 		String currentUserCode = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser")).getUserCode();
-		String roleCode = getCurrentUserRoleCode();
-		if ("004".equals(roleCode)) {
-			sql.append(" and user_id = '" + currentUserId + "'");
+		UserVO userVO  = getCurrentUser();
+		if(userVO != null ){
+			if(userVO.getRoleLevel() ==2){
+				//二级管理员
+				sql.append(" and user_id in (select us.id from user_info us,role_info role where role.biz_range="+userVO.getRoleBizRange()+")");
+			}
+			if(userVO.getRoleLevel()==3){
+				//三级管理员
+				sql.append(" and user_id in (select us.id from user_info us,"
+						+ "role_info role where role.biz_range="+userVO.getRoleBizRange()+" and us.region like '"+userVO.getRegion()+"%')");
+				
+			}
+			if(userVO.getRoleLevel()==4){
+				//业务员
+				sql.append(" and user_id = '" + currentUserId + "'");
+			}
+			
 		}
+		/*if ("004".equals(roleCode)) {
+			sql.append(" and user_id = '" + currentUserId + "'");
+		}*/
 		if(map !=null){
 			if(map.containsKey("keyWords")){
 				String keyWords = (String) map.get("keyWords");
 				if(null != keyWords && !keyWords.equals("")){
-					if("004".equals(roleCode) && !keyWords.startsWith(currentUserName) && !keyWords.startsWith(currentUserCode)){
-						sql.append(" and (resource_phone like '"+keyWords+"%' or resource_wechat_code like '"+keyWords+"%')");
-					}else{
+					if(userVO != null && userVO.getRoleLevel()==4 && !keyWords.startsWith(currentUserName) && !keyWords.startsWith(currentUserCode)){
+							//业务员
+							sql.append(" and (resource_phone like '"+keyWords+"%' or resource_wechat_code like '"+keyWords+"%')");
+						}else{
 						sql.append(" and (resource_phone like '"+keyWords+"%' or resource_wechat_code like '"+keyWords+"%'"
 								+ " or user_id in (select id from user_info where (user_name like '"+keyWords+"%') or (user_code like '"+keyWords+"%')))");
 					}
@@ -576,7 +633,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			}
 			if(map.containsKey("userId")){
 				String userId = (String) map.get("userId");
-				if("004".equals(roleCode) && !currentUserId.equals(userId)){
+				if(userVO != null && userVO.getRoleLevel()==4 && !currentUserId.equals(userId)){
 					return null;
 				}
 				if(userId != null && !userId.equals("")){
@@ -596,18 +653,20 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		return null;
 	}
 	
-	private String getCurrentUserRoleCode() throws Exception{
+	private UserVO getCurrentUser() throws Exception{
 		//当前用户
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
-		RoleVO roleVO = roleService.findVOById(user.getRoleId(), RoleVO.class);
-		return roleVO.getRoleCode();
+		return user;
 	}
 
 	@Override
 	public Object countRegionUserOwnResources(Map<String, Object> map) throws Exception {
-		String roleCode = getCurrentUserRoleCode();
-		if ("004".equals(roleCode)) {
+		UserVO userVO = getCurrentUser();
+		if (userVO == null) {
+			return null;
+		} 
+		if(userVO.getRoleLevel()==4) {
 			throw new Exception("业务员没有操作权限!");
 		}
 	 
@@ -619,7 +678,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		}else{
 			date = new Date();
 		}
-		String firstDate = "2018-11-30 23:59:59";
+		String firstDate = "2019-02-28 23:59:59";
 		String dateStr = getMonthLastdate(date,1);
 		String beforeDateStr = getMonthLastdate(date,2);
 		StringBuffer sql = new StringBuffer("select sum(case when  uor.create_time <='"+firstDate+"' then uor.min_fans else 0 end ) as fristNum,");  
@@ -628,8 +687,17 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		sql.append(" sum(case when uor.create_time between  '"+beforeDateStr+"' and '"+dateStr+"' then uor.min_fans else 0 end ) as  addNum,");
 		sql.append(" sum(case when uor.create_time between  '"+firstDate+"' and '"+dateStr+"' then uor.min_fans else 0 end ) as  sumAddNum,");
 		sql.append(" us.region as region");
-		sql.append(" from user_own_resource uor inner join user_info us on uor.user_id = us.id");
+		sql.append(" from user_own_resource uor");
+		sql.append(" inner join user_info us on uor.user_id = us.id");
+		sql.append(" left join role_info role on us.role_id = role.id");
 		sql.append(" where 1=1 ");
+		if(userVO.getRoleLevel()>1) {
+			sql.append(" and role.biz_range="+userVO.getRoleBizRange());
+		}
+		if(userVO.getRoleLevel()==3) {
+			//三级管理员
+			sql.append(" and us.region like '"+userVO.getRegion()+"%'");	
+		}
 		sql.append(" group by  us.region");
 		List<UserResourceReportVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<UserResourceReportVO>(UserResourceReportVO.class));
 		if(list==null ||list.isEmpty()){

@@ -6,13 +6,11 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 @Entity
 @Table(name="warehouse_info")
-@Getter @Setter @ToString
+@Data
 public class WarehouseEntity extends SuperEntity{
 
 	
@@ -24,4 +22,8 @@ public class WarehouseEntity extends SuperEntity{
 	private String code;
 	@Column(name="orde_code_prefix")
 	private String ordeCodePrefix;
+	@Column(name="biz_range")
+	private int bizRange;
+	
+	
 }

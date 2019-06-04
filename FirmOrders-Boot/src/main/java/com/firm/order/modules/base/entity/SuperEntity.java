@@ -8,13 +8,12 @@ import javax.persistence.MappedSuperclass;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @MappedSuperclass
-
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public abstract class SuperEntity extends BaseEntity implements Serializable{
 
 	

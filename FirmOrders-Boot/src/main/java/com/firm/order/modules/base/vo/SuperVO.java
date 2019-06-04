@@ -4,11 +4,11 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class SuperVO extends BaseVO {
 
 	/**

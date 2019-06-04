@@ -5,6 +5,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,14 +25,12 @@ import com.firm.order.modules.order.service.IOrderService;
 import com.firm.order.modules.order.vo.OrderVO;
 import com.firm.order.utils.JsonBackData;
 
-import lombok.extern.slf4j.Slf4j;
 
-
-@Slf4j
 @Controller
 @RequestMapping(value="order")
 public class OrderController {
 	
+private static Logger logger = LoggerFactory.getLogger(OrderController.class);
 	
 	@Autowired
 	private IOrderService service;
@@ -60,7 +60,7 @@ public class OrderController {
 				back.setBackMsg("查询订单列表成功！");
 			
 		}catch (Exception e) {
-			log.error("查询订单列表方法：", e);
+			logger.error("查询订单列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询订单列表失败,"+e.getMessage());
 		}
@@ -78,7 +78,7 @@ public class OrderController {
 				back.setBackMsg("查询订单信息成功！");
 			
 		}catch (Exception e) {
-			log.error("查询订单信息方法：", e);
+			logger.error("查询订单信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询订单信息失败,"+e.getMessage());
 		}
@@ -100,7 +100,7 @@ public class OrderController {
 			back.setBackMsg("删除订单信息成功！");
 			
 		}catch (Exception e) {
-			log.error("删除订单信息方法：", e);
+			logger.error("删除订单信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除订单信息失败,"+e.getMessage());
 		}
@@ -119,7 +119,7 @@ public class OrderController {
 			back.setBackMsg("订单信息保存成功！");
 
 		} catch (Exception e) {
-			log.error("订单信息保存方法：", e);
+			logger.error("订单信息保存方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("订单信息保存失败," + e.getMessage());
 		}
@@ -137,7 +137,7 @@ public class OrderController {
 			back.setBackMsg("导入仓库回执成功！");
 
 		} catch (Exception e) {
-			log.error("导入仓库回执方法：", e);
+			logger.error("导入仓库回执方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("导入仓库回执失败," + e.getMessage());
 		}
@@ -154,7 +154,7 @@ public class OrderController {
 			back.setBackMsg("导入快递状态信息成功！");
 
 		} catch (Exception e) {
-			log.error("导入快递状态信息方法：", e);
+			logger.error("导入快递状态信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("导入快递状态信息失败," + e.getMessage());
 		}
@@ -169,10 +169,10 @@ public class OrderController {
 		try {
 			return service.exportOrderExcel(map);
 		} catch (Exception e) {
-			log.error("导出快递信息方法：", e);
+			logger.error("导出订单信息方法：", e);
 			JsonBackData back = new JsonBackData();
 			back.setSuccess(false);
-			back.setBackMsg("导出快递信息失败," + e.getMessage());
+			back.setBackMsg("导出订单信息失败," + e.getMessage());
 			return back;
 		}
 		
@@ -184,7 +184,7 @@ public class OrderController {
 		try {
 			return  service.exportTemplateExcel(type);
 		} catch (Exception e) {
-			log.error("导出模板方法：", e);
+			logger.error("导出模板方法：", e);
 			JsonBackData back = new JsonBackData();
 			back.setSuccess(false);
 			back.setBackMsg("导出模板信息失败," + e.getMessage());
@@ -199,7 +199,7 @@ public class OrderController {
 		try {
 			return service.exportMultiPurchase(map);	
 		} catch (Exception e) {
-			log.error("导出复购客户信息方法：", e);
+			logger.error("导出复购客户信息方法：", e);
 			JsonBackData back = new JsonBackData();
 			back.setSuccess(false);
 			back.setBackMsg("导出复购客户信息失败," + e.getMessage());
@@ -215,7 +215,7 @@ public class OrderController {
 		try {
 			return service.exportRegionOrder(map);	
 		} catch (Exception e) {
-			log.error("导出各区域订单信息方法：", e);
+			logger.error("导出各区域订单信息方法：", e);
 			JsonBackData back = new JsonBackData();
 			back.setSuccess(false);
 			back.setBackMsg("导出各区域订单信息失败," + e.getMessage());
@@ -237,7 +237,7 @@ public class OrderController {
 			back.setBackMsg("查询时间段内订单数据成功！");
 
 		} catch (Exception e) {
-			log.error("查询时间段内订单数据方法:", e);
+			logger.error("查询时间段内订单数据方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询时间段内订单数据失败," + e.getMessage());
 		}
@@ -256,7 +256,7 @@ public class OrderController {
 			back.setBackMsg("查询时间段内各区业绩情况成功！");
 
 		} catch (Exception e) {
-			log.error("查询时间段内各区业绩情况方法:", e);
+			logger.error("查询时间段内各区业绩情况方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询时间段内各区业绩情况失败," + e.getMessage());
 		}
@@ -273,7 +273,7 @@ public class OrderController {
 			back.setBackMsg("查询不同订单性质的客户信息成功！");
 
 		} catch (Exception e) {
-			log.error("查询不同订单性质的客户信方法:", e);
+			logger.error("查询不同订单性质的客户信方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询不同订单性质的客户信失败," + e.getMessage());
 		}
@@ -291,7 +291,7 @@ public class OrderController {
 			back.setBackMsg("查询时间段内个人出单情况成功！");
 
 		} catch (Exception e) {
-			log.error("查询时间段内个人出单情况方法:", e);
+			logger.error("查询时间段内个人出单情况方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询时间段内个人出单情况失败," + e.getMessage());
 		}
@@ -309,11 +309,30 @@ public class OrderController {
 			back.setBackMsg("查询时间段内各区不同性质订单汇总成功！");
 
 		} catch (Exception e) {
-			log.error("查询时间段内各区不同性质订单汇总方法:", e);
+			logger.error("查询时间段内各区不同性质订单汇总方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询时间段内各区不同性质订单汇总失败," + e.getMessage());
 		}
 		return back;
 	}
 
+	@RequestMapping(value = "updateOrders",method = RequestMethod.POST)
+	@ResponseBody
+	public JsonBackData updateOrders(@RequestBody Map<String,Object> map) throws Exception {
+		JsonBackData back = new JsonBackData();
+		try {
+			Object re = service.updateOrders(map);	
+			back.setBackData(re);
+			back.setSuccess(true);
+			back.setBackMsg("更新订单信息1111成功！");
+
+		} catch (Exception e) {
+			logger.error("更新订单信息1111成功方法:", e);
+			back.setSuccess(false);
+			back.setBackMsg("更新订单信息1111成功失败," + e.getMessage());
+		}
+		return back;
+	}
+
+	
 }

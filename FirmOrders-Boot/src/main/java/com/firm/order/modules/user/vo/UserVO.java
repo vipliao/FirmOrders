@@ -6,11 +6,10 @@ import java.util.List;
 import com.firm.order.modules.assessory.vo.AssessoryVO;
 import com.firm.order.modules.base.vo.SuperVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter @Setter @ToString
+
+@Data 
 public class UserVO extends SuperVO {
 
 	/**
@@ -27,9 +26,10 @@ public class UserVO extends SuperVO {
 	private String roleId;
 	private String roleName;
 	private String roleCode;
+	private int roleLevel;
+	private int roleBizRange;
 	private int isFrozen;
 	private List<UserOwnResourceVO> childrenDetail = new ArrayList<UserOwnResourceVO>(0);
 	private List<AssessoryVO> assessorys;
-	
 	
 }

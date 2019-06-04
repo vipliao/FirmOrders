@@ -11,13 +11,11 @@ import org.hibernate.annotations.GenericGenerator;
 
 import com.firm.order.utils.BeanHelper;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 
 @MappedSuperclass
-@Getter @Setter @ToString
+@Data
 public class BaseEntity implements Serializable {
 
 	

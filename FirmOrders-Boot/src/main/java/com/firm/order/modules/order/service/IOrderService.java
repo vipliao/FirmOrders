@@ -40,4 +40,6 @@ public interface IOrderService extends IBaseService<OrderEntity, OrderVO> {
 
 	Object regionOrderNature(Map<String, Object> map) throws Exception;
 
+	Object updateOrders(Map<String,Object> map) throws Exception;
+
 }

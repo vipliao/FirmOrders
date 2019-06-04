@@ -6,13 +6,12 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
 @Entity
 @Table(name="user_own_resource")
-@Getter @Setter @ToString
+@Data 
 public class UserOwnResourceEntity extends SuperEntity{
 
 	/**

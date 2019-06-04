@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 
 import com.firm.order.modules.base.vo.SuperVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class ProductVO extends SuperVO{
 
 	/**
@@ -16,9 +16,13 @@ public class ProductVO extends SuperVO{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private int wareHouse;
+	private String wareHouse;
+	private String wareHouseName;
+	
 	private String name;
 	private BigDecimal costPrice;
 	private String barCode;
 	private String unit;
+
+
 }

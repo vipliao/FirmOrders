@@ -2,11 +2,9 @@ package com.firm.order.modules.base.vo;
 
 import java.io.Serializable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter @Setter @ToString
+@Data
 public class BaseVO implements Serializable{
 	   /**
 	 * 

@@ -2,12 +2,9 @@ package com.firm.order.modules.warehouse.vo;
 
 import com.firm.order.modules.base.vo.SuperSubVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-
-@Getter @Setter @ToString
+@Data
 public class WarehouseVO extends SuperSubVO{
 
 	/**
@@ -18,4 +15,7 @@ public class WarehouseVO extends SuperSubVO{
 	private String name;
 	private String code;
 	private String ordeCodePrefix;
+	private int bizRange;
+
+	
 }

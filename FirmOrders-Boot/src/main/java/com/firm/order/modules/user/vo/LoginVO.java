@@ -2,11 +2,10 @@ package com.firm.order.modules.user.vo;
 
 import java.io.Serializable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter @Setter @ToString
+@Data
 public class LoginVO implements Serializable{
 	/**
 	 * 
@@ -15,4 +14,6 @@ public class LoginVO implements Serializable{
 	private String loginName;
 	private String password;
 	
+	
+
 }

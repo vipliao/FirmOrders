@@ -6,14 +6,12 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
 @Entity
 @Table(name="user_info")
-
-@Getter @Setter @ToString
+@Data
 public class UserEntity extends SuperEntity{
 
 	/**
@@ -35,5 +33,4 @@ public class UserEntity extends SuperEntity{
 	
 /*	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "parent")
 	private List<UserOwnResourceEntity> childrenDetail = new ArrayList<UserOwnResourceEntity>(0);*/
-
 }

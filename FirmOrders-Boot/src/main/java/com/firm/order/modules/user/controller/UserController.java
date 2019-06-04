@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,12 +27,10 @@ import com.firm.order.modules.user.vo.UserOwnResourceVO;
 import com.firm.order.modules.user.vo.UserVO;
 import com.firm.order.utils.JsonBackData;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Controller
 @RequestMapping(value = "user")
-@Slf4j
 public class UserController {
+	private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
 	private IUserService service;
@@ -57,7 +57,7 @@ public class UserController {
 			back.setBackMsg(reMsg.toString());
 
 		} catch (Exception e) {
-			log.error("用户信息保存方法：", e);
+			logger.error("用户信息保存方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("用户信息保存失败," + e.getMessage());
 		}
@@ -75,7 +75,7 @@ public class UserController {
 			back.setBackMsg("查询用户信息成功！");
 
 		} catch (Exception e) {
-			log.error("查询用户信息方法：", e);
+			logger.error("查询用户信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询用户信息失败," + e.getMessage());
 		}
@@ -107,7 +107,7 @@ public class UserController {
 			back.setBackMsg("查询用户信息列表成功！");
 
 		} catch (Exception e) {
-			log.error("查询用户信息列表方法：", e);
+			logger.error("查询用户信息列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询用户信息列表失败," + e.getMessage());
 		}
@@ -135,7 +135,7 @@ public class UserController {
 			}
 
 		} catch (Exception e) {
-			log.error("删除用户信息方法：", e);
+			logger.error("删除用户信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除用户信息失败," + e.getMessage());
 		}
@@ -153,7 +153,7 @@ public class UserController {
 			back.setBackMsg("根据用户名查询用户信息成功！");
 
 		} catch (Exception e) {
-			log.error("根据用户名查询用户信息方法：", e);
+			logger.error("根据用户名查询用户信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("根据用户名查询用户信息失败," + e.getMessage());
 		}
@@ -171,7 +171,7 @@ public class UserController {
 			back.setBackMsg("登录成功！");
 
 		} catch (Exception e) {
-			log.error("用户登录方法：", e);
+			logger.error("用户登录方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("登录失败," + e.getCause().getMessage());
 		}
@@ -196,7 +196,7 @@ public class UserController {
 			back.setBackMsg("冻结/解冻用户成功！");
 
 		} catch (Exception e) {
-			log.error("冻结/解冻用户方法：", e);
+			logger.error("冻结/解冻用户方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("冻结/解冻用户失败," + e.getMessage());
 		}
@@ -214,7 +214,7 @@ public class UserController {
 			back.setBackMsg("重置密码成功，默认密码为:" + data);
 
 		} catch (Exception e) {
-			log.error("重置密码方法：", e);
+			logger.error("重置密码方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("重置密码失败," + e.getMessage());
 		}
@@ -231,7 +231,7 @@ public class UserController {
 			back.setBackMsg("修改密码成功!");
 
 		} catch (Exception e) {
-			log.error("修改密码方法：", e);
+			logger.error("修改密码方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("修改密码失败," + e.getMessage());
 		}
@@ -257,7 +257,7 @@ public class UserController {
 			back.setBackMsg("修改头像成功!");
 
 		} catch (Exception e) {
-			log.error("修改头像方法：", e);
+			logger.error("修改头像方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("修改头像失败," + e.getMessage());
 		}
@@ -275,7 +275,7 @@ public class UserController {
 			back.setBackMsg("保存用户拥有资源成功!");
 
 		} catch (Exception e) {
-			log.error("保存用户拥有资源方法：", e);
+			logger.error("保存用户拥有资源方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("保存用户拥有资源失败," + e.getMessage());
 		}
@@ -294,7 +294,7 @@ public class UserController {
 			back.setBackMsg("保存用户拥有资源成功!");
 
 		} catch (Exception e) {
-			log.error("保存用户拥有资源(only)方法：", e);
+			logger.error("保存用户拥有资源(only)方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("保存用户拥有资源失败," + e.getMessage());
 		}
@@ -315,7 +315,7 @@ public class UserController {
 			back.setBackMsg("保存用户拥有资源成功!");
 
 		} catch (Exception e) {
-			log.error("保存一条用户拥有资源方法：", e);
+			logger.error("保存一条用户拥有资源方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("保存用户拥有资源失败," + e.getMessage());
 		}
@@ -334,7 +334,7 @@ public class UserController {
 			back.setBackMsg("查询用户拥有资源成功!");
 
 		} catch (Exception e) {
-			log.error("查询用户拥有资源方法：", e);
+			logger.error("查询用户拥有资源方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询用户拥有资源失败," + e.getMessage());
 		}
@@ -353,7 +353,7 @@ public class UserController {
 			back.setBackMsg("查询用户拥有资源成功!");
 
 		} catch (Exception e) {
-			log.error("查询一个用户拥有资源方法：", e);
+			logger.error("查询一个用户拥有资源方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询用户拥有资源失败," + e.getMessage());
 		}
@@ -376,7 +376,7 @@ public class UserController {
 			}
 
 		} catch (Exception e) {
-			log.error("删除用户拥有资源信息方法：", e);
+			logger.error("删除用户拥有资源信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除用户拥有资源信息失败," + e.getMessage());
 		}
@@ -408,7 +408,7 @@ public class UserController {
 			back.setBackMsg("查询用户拥有资源信息列表成功！");
 
 		} catch (Exception e) {
-			log.error("查询用户拥有资源信息列表方法：", e);
+			logger.error("查询用户拥有资源信息列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询用户拥有资源信息列表失败," + e.getMessage());
 		}
@@ -426,7 +426,7 @@ public class UserController {
 			back.setBackMsg("各区资源统计成功！");
 
 		} catch (Exception e) {
-			log.error("各区资源统计方法:", e);
+			logger.error("各区资源统计方法:", e);
 			back.setSuccess(false);
 			back.setBackMsg("各区资源统计失败," + e.getMessage());
 		}

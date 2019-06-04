@@ -2,12 +2,10 @@ package com.firm.order.modules.user.vo;
 
 import com.firm.order.modules.base.vo.SuperSubVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
-
-@Getter @Setter @ToString
+@Data
 public class UserOwnResourceVO extends SuperSubVO{
 
 	/**
@@ -21,6 +19,7 @@ public class UserOwnResourceVO extends SuperSubVO{
 	private int minFans;
 	
 	private UserVO parent;
-
+	
+	
 
 }

@@ -3,6 +3,8 @@ package com.firm.order.modules.product.controller;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +22,11 @@ import com.firm.order.modules.product.service.IProductService;
 import com.firm.order.modules.product.vo.ProductVO;
 import com.firm.order.utils.JsonBackData;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Controller
 @RequestMapping(value="product")
-@Slf4j
-public class ProductController {	
+public class ProductController {
+	private static Logger logger = LoggerFactory.getLogger(ProductController.class);
+	
 	@Autowired
 	private IProductService service;
 	
@@ -54,7 +55,7 @@ public class ProductController {
 				back.setBackMsg("查询产品列表成功！");
 			
 		}catch (Exception e) {
-			log.error("查询产品列表方法：", e);
+			logger.error("查询产品列表方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询产品列表失败,"+e.getMessage());
 		}
@@ -72,7 +73,7 @@ public class ProductController {
 				back.setBackMsg("查询产品信息成功！");
 			
 		}catch (Exception e) {
-			log.error("查询产品信息方法：", e);
+			logger.error("查询产品信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("查询产品信息失败,"+e.getMessage());
 		}
@@ -94,7 +95,7 @@ public class ProductController {
 			back.setBackMsg("删除产品信息成功！");
 			
 		}catch (Exception e) {
-			log.error("删除产品信息方法：", e);
+			logger.error("删除产品信息方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("删除产品信息失败,"+e.getMessage());
 		}
@@ -113,7 +114,7 @@ public class ProductController {
 			back.setBackMsg("产品信息保存成功！");
 
 		} catch (Exception e) {
-			log.error("产品信息保存方法：", e);
+			logger.error("产品信息保存方法：", e);
 			back.setSuccess(false);
 			back.setBackMsg("产品信息保存失败," + e.getMessage());
 		}

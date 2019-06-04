@@ -8,13 +8,13 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name="order_product")
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class OrderProductEntity extends SuperEntity{
 
 	/**
@@ -42,7 +42,6 @@ public class OrderProductEntity extends SuperEntity{
 	private BigDecimal productCostPrice;
 	
 	@Column(name="product_warehouse")
-	private int productWarehouse;
+	private String productWarehouse;
 
-	
 }

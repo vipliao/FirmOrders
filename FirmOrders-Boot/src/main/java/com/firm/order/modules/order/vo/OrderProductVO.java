@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 
 import com.firm.order.modules.base.vo.SuperSubVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class OrderProductVO extends SuperSubVO{
 
 	/**
@@ -30,7 +30,9 @@ public class OrderProductVO extends SuperSubVO{
 	
 	private BigDecimal productCostPrice;
 	
-	private int productWarehouse;
+	private String productWarehouse;
+	
+	private String productWarehouseName;
 
 	
 

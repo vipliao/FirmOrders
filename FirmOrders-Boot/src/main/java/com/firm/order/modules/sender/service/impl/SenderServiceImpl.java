@@ -5,6 +5,9 @@ import java.util.Map;
 
 import javax.transaction.Transactional;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -12,11 +15,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.firm.order.modules.base.service.impl.BaseServiceImpl;
 import com.firm.order.modules.sender.entity.SenderEntity;
 import com.firm.order.modules.sender.service.ISenderService;
 import com.firm.order.modules.sender.vo.SenderVO;
+import com.firm.order.modules.user.vo.UserVO;
 
 @Service
 public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> implements ISenderService{
@@ -41,6 +46,13 @@ public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> i
 				sql.append(" and is_enabled ="+enabled);
 			}
 		}
+		
+		UserVO userVO = getCurrentUser();
+		if(userVO != null ) {
+			if(userVO.getRoleLevel()>1){
+				sql.append(" and biz_range="+userVO.getRoleBizRange());
+			}
+		}
 		sql.append(" order by create_time desc");
 		int total =  getTotalCount(sql.toString());
 		if(pageable != null){
@@ -61,9 +73,22 @@ public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> i
 	@Transactional
 	@Override
 	public SenderVO save(SenderVO vo, Class<SenderEntity> clazzE, Class<SenderVO> clazzV) throws Exception {
-		String sql = "select count(1) from sender_info";
-		int count = jdbcTemplate.queryForObject(sql, Integer.class);
-		if(count==0){
+		UserVO userVO = getCurrentUser();
+		if(userVO != null ) {
+			if(userVO.getRoleLevel()>1 && !StringUtils.isEmpty(vo.getId()) && vo.getBizRange() != userVO.getRoleBizRange()){
+				throw new Exception("没有权限保存业务范围外的数据!");
+			}
+			if(StringUtils.isEmpty(vo.getId())){
+				vo.setBizRange(userVO.getRoleBizRange());
+			}
+		}
+		String sql = "select * from sender_info";
+		List<SenderVO> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<SenderVO>(SenderVO.class));
+		if(CollectionUtils.isEmpty(list) || list.size()==1){
+			vo.setIsEnabled(1);
+		}
+		if (!CollectionUtils.isEmpty(list) && list.size() == 2 && list.get(0).getBizRange() != vo.getBizRange()
+				&& list.get(1).getBizRange() != vo.getBizRange()) {
 			vo.setIsEnabled(1);
 		}
 		return super.save(vo, clazzE, clazzV);
@@ -86,6 +111,17 @@ public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> i
 	@Transactional
 	@Override
 	public void enabled(String id,int enabled) throws Exception {
+		String sql1 = "select * from sender_info where id='"+id+"'";
+		List<SenderVO> list = jdbcTemplate.query(sql1, new BeanPropertyRowMapper<SenderVO>(SenderVO.class));
+		if(list == null|| list.isEmpty()){
+			throw new Exception("要操作的数据不存在!");
+		}
+		UserVO userVO = getCurrentUser();
+		if(userVO != null ) {
+			if(userVO.getRoleLevel()>1 && list.get(0).getBizRange() != userVO.getRoleBizRange()){
+				throw new Exception("没有权限保存业务范围外的数据!");
+			}
+		}
 		if(id==null|| id.equals("")){
 			throw new Exception("id不能为空!");
 		}
@@ -94,5 +130,11 @@ public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> i
 		}
 		String sql = "update sender_info set is_enabled="+enabled+" where id='"+id+"'";
 		jdbcTemplate.update(sql);
+	}
+	
+	private UserVO getCurrentUser(){
+		Subject subject = SecurityUtils.getSubject();
+		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
+		return user;
 	}
 }

@@ -2,11 +2,11 @@ package com.firm.order.modules.sender.vo;
 
 import com.firm.order.modules.base.vo.SuperVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@Getter @Setter @ToString
+@Data
+@EqualsAndHashCode(callSuper=true)
 public class SenderVO extends SuperVO{
 
 	/**
@@ -17,5 +17,7 @@ public class SenderVO extends SuperVO{
 	private String serderPhone;
 	private String senderAddr;
 	private int isEnabled;
+	private int bizRange;
+	
 
 }

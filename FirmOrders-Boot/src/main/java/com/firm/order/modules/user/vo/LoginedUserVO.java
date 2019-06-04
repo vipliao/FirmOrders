@@ -5,11 +5,10 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.firm.order.modules.base.vo.SuperVO;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter @Setter @ToString
+@Data 
 public class LoginedUserVO extends SuperVO{
 
 	/**

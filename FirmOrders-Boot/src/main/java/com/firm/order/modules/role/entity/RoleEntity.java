@@ -6,13 +6,13 @@ import javax.persistence.Table;
 
 import com.firm.order.modules.base.entity.SuperEntity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name="role_info")
-@Getter @Setter @ToString
+@Data 
+@EqualsAndHashCode(callSuper=true)
 public class RoleEntity extends SuperEntity{
 
 	/**
@@ -23,4 +23,9 @@ public class RoleEntity extends SuperEntity{
 	private String roleCode;
 	@Column(name="role_name")
 	private String roleName;
+	@Column(name="biz_range")
+	private int bizRange;
+	private int level;
+	
+	
 }
