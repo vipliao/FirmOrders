@@ -27,6 +27,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -661,7 +662,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 			
 			queryOrderProducts(list);
-			return new PageImpl<OrderVO>(list, pageable, pageable != null ? total : (long) list.size());
+			return new PageImpl<OrderVO>(list, pageable != null?pageable: PageRequest.of(0,list.size()), pageable != null ? total : (long) list.size());
 		}
 		return null;
 		

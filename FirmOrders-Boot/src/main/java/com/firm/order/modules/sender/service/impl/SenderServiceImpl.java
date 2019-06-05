@@ -11,6 +11,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -60,7 +61,7 @@ public class SenderServiceImpl extends BaseServiceImpl<SenderEntity, SenderVO> i
 		}
 		List<SenderVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<SenderVO>(SenderVO.class));
 		if (list != null && list.size() > 0) {
-			return new PageImpl<SenderVO>(list, pageable, pageable != null ? total : (long) list.size());
+			return new PageImpl<SenderVO>(list, pageable != null?pageable: PageRequest.of(0,list.size()), pageable != null ? total : (long) list.size());
 		}
 		return null;
 	}

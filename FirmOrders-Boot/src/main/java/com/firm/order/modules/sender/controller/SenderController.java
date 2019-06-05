@@ -81,10 +81,10 @@ public class SenderController {
 				if (!StringUtils.isEmpty(pageNumber) && !StringUtils.isEmpty(pageSize)) {
 					int iPageNumber = Integer.parseInt(pageNumber);
 					if (!StringUtils.isEmpty(sortField) && !StringUtils.isEmpty(sortType)) {
-						pageable = new PageRequest(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize),
+						pageable = PageRequest.of(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize),
 								Direction.fromString(sortType), sortField);
 					} else {
-						pageable = new PageRequest(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize));
+						pageable = PageRequest.of(iPageNumber <= 0 ? 0 : (iPageNumber - 1), Integer.parseInt(pageSize));
 					}
 				}
 				Page<SenderVO> userVO = service.queryList(pageable,map);

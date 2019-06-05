@@ -8,6 +8,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,7 +54,7 @@ public class ProductServiceImpl extends BaseServiceImpl<ProductEntity, ProductVO
 		}
 		List<ProductVO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<ProductVO>(ProductVO.class));
 		if (list != null && list.size() > 0) {
-			return new PageImpl<ProductVO>(list, pageable, pageable != null ? total : (long) list.size());
+			return new PageImpl<ProductVO>(list, pageable != null?pageable: PageRequest.of(0,list.size()), pageable != null ? total : (long) list.size());
 		}
 		return null;
 	}

@@ -9,8 +9,6 @@ import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.cache.ehcache.EhCacheManager;
 import  org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SessionManager;
-import org.apache.shiro.session.mgt.SessionValidationScheduler;
-import org.apache.shiro.session.mgt.ValidatingSessionManager;
 import org.apache.shiro.session.mgt.eis.CachingSessionDAO;
 import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
 import org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator;
@@ -31,7 +29,6 @@ import com.firm.order.config.aouth.filter.LoginAuthorizationFilter;
 import com.firm.order.config.aouth.filter.LogoutAuthorizationFilter;
 import com.firm.order.config.aouth.filter.PermsAuthorizationFilter;
 import com.firm.order.config.aouth.realm.ShiroRealm;
-import com.firm.order.config.aouth.scheduler.QuartzSessionValidationScheduler;
 import com.firm.order.config.aouth.session.FirmWebSessionManager;
 
 @Configuration
@@ -82,14 +79,14 @@ public class ShiroConfig {
         return shiroFilterFactoryBean;
     }
     
-    @Bean
+/*    @Bean
     public SessionValidationScheduler sessionValidationScheduler() {
     	QuartzSessionValidationScheduler sessionValidationScheduler = new QuartzSessionValidationScheduler();
     	sessionValidationScheduler.setSessionValidationInterval(sessionTimeoutClean);
     	sessionValidationScheduler.setSessionManager((ValidatingSessionManager) sessionManager());
     	return sessionValidationScheduler;
     }
-    
+    */
     @Bean
     public CachingSessionDAO sessionDao() {
     	EnterpriseCacheSessionDAO dao = new EnterpriseCacheSessionDAO();
