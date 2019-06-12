@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import com.firm.order.config.jasypt.FirmEncryptablePropertyResolver;
-import com.firm.order.config.jasypt.FrimEncryptablePropertyDetector;
+import com.firm.order.config.propertyresolver.FirmEncryptablePropertyResolver;
+import com.firm.order.config.propertyresolver.FrimEncryptablePropertyDetector;
 import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyDetector;
 import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyResolver;
 

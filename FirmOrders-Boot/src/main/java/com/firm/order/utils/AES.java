@@ -1,4 +1,4 @@
-package com.firm.order.config.decrypt;
+package com.firm.order.utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
