@@ -8,6 +8,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import com.firm.order.config.decrypt.AES;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -56,7 +57,7 @@ public class LogoutAuthorizationFilter extends LogoutFilter {
 			PrintWriter out;
 			try {
 				out = httpServletResponse.getWriter();
-				out.println(reMsg);
+				out.println(AES.encrypt(reMsg));
 				out.flush();
 				out.close();
 			} catch (IOException e1) {

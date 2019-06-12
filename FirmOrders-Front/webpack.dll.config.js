@@ -11,9 +11,11 @@ module.exports = {
         filename: '[name].dll.js',
         library: '[name]_[chunkhash:5]'
     },
+
     resolve: {
         extensions: ['.js', '.json', '.jsx']
     },
+
     plugins: [
         new webpack.DllPlugin({
             context: path.join(__dirname, '.', 'dll'),

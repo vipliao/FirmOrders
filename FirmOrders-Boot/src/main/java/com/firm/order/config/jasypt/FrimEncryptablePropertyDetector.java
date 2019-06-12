@@ -4,7 +4,7 @@ import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyDetector;
 
 public class FrimEncryptablePropertyDetector implements EncryptablePropertyDetector {
 
-    public static final String ENCODED_PASSWORD_HINT = "{cipher}";
+    public static final String ENCODED_PASSWORD_HINT = "dJICJBmLxRDD4e7/1Zekhw";
 
     
     

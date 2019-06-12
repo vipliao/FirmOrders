@@ -1,4 +1,5 @@
 import assign from 'lodash/assign';
+import {Encrypt,Decrypt} from "./encrypt";
 
 export default {
 
@@ -133,7 +134,7 @@ export default {
                 'Content-Type': 'application/json',
                 'X-Auth-Token': sessionStorage.token
             },
-            body: body
+            body: Encrypt(body)
         }).then((response) => {
             const disposition = response.headers.get('Content-Disposition');
             let filename;
@@ -154,7 +155,7 @@ export default {
                 if (typeof success === 'function' && success !== undefined) success();
             } else {
                 if (typeof error === 'function' && error !== undefined){
-                    response.json().then(res => error(res));
+                    response.json().then(res => error(Decrypt(res)));
                 }
             }
         });

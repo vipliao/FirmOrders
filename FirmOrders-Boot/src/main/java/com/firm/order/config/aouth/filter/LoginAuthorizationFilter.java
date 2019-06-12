@@ -8,6 +8,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.firm.order.config.decrypt.AES;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -44,7 +45,7 @@ public class LoginAuthorizationFilter extends FormAuthenticationFilter{
         PrintWriter out;
         try {
             out = httpServletResponse.getWriter();
-            out.println(errorMsg);
+            out.println(AES.encrypt(errorMsg));
             out.flush();
             out.close();
         } catch (IOException e1) {
