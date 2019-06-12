@@ -28,7 +28,7 @@ public class CorsConfig implements Filter {
         httpResponse.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE");
         httpResponse.setHeader("Access-Control-Max-Age", "3600");
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-        httpResponse.setHeader("Access-Control-Allow-Headers", "*");
+        httpResponse.setHeader("Access-Control-Allow-Headers", "x-requested-with,Access-Control,Content-Type,"+authorization);
         //httpResponse.setHeader("Access-Control-Expose-Headers","Content-Disposition");
         chain.doFilter(new DecryptRequestWrapper(httpRequest), response);
 
