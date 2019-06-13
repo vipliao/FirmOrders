@@ -9,12 +9,37 @@ axios.defaults.headers['Content-Type'] = 'application/json;charset=UTF-8';
 // 添加请求拦截器
 axios.interceptors.request.use(config => {
     // 在发送请求之前做些什么
+    //设置token
+    const token = sessionStorage.getItem('token');
+   /* if (token) {
+        config.headers['X-Auth-Token'] = `${token}`;
+    }*/
     // 数据加密
     switch (config.method) {
         case 'get':
+            if (token) {
+                let data=new Object();
+                if(Object.prototype.toString.call(config.params) == '[object String]'){
+                    data = JSON.parse( config.params);
+                }else if(Object.prototype.toString.call(config.params) == '[object Object]'){
+                    data =  config.params;
+                }
+                data['X-Auth-Token'] = `${token}`;
+                config.params = data;
+            }
             config.params = config.params?{p:Encrypt(config.params)}:null;
             break;
         case 'post':
+            if (token) {
+                let data = new Object();
+                if(Object.prototype.toString.call(config.data) == '[object String]'){
+                    data = JSON.parse(config.data);
+                }else if(Object.prototype.toString.call(config.data) == '[object Object]'){
+                    data = config.data;
+                }
+                data['X-Auth-Token'] = `${token}`;
+                config.data = data;
+            }
             config.data =config.data?Encrypt(config.data):null;
             break;
         default:
@@ -24,11 +49,7 @@ axios.interceptors.request.use(config => {
 
     // 签名串
     let timestamp = new Date().getTime();
-    //设置token
-    const token = sessionStorage.getItem('token');
-    if (token) {
-        config.headers['X-Auth-Token'] = `${token}`;
-    }
+
 
     /*let signstr = Sign(token, timestamp, config.data);
     console.log('token', token);

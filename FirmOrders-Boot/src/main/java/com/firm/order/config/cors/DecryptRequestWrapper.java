@@ -3,8 +3,10 @@ package com.firm.order.config.cors;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.firm.order.utils.AES;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.http.MimeHeaders;
 import org.springframework.util.Assert;
 
 import javax.servlet.ReadListener;
@@ -14,11 +16,13 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
  * 解密request封装
  */
+@Slf4j
 public class DecryptRequestWrapper extends HttpServletRequestWrapper {
 
     private static final String APPLICATION_JSON = "application/json";
@@ -26,6 +30,7 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
      * 所有参数的Map集合
      */
     private Map<String, String[]> parameterMap;
+
     /**
      * 输入流
      */
@@ -45,6 +50,14 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
         // 解密
         if (StringUtils.isNotBlank(content)) {
             content = AES.decrypt(content);
+            JSONObject obj = JSONObject.parseObject(content);
+            if(obj.containsKey("X-Auth-Token")){
+                String token = obj.get("X-Auth-Token").toString();
+                if(StringUtils.isNotBlank(token)){
+                    reflectSetparam(request,"X-Auth-Token",token);
+                    content = obj.fluentRemove("X-Auth-Token").toJSONString();
+                }
+            }
             if (null != contentType && contentType.contains(APPLICATION_JSON)) {
                 if (this.inputStream == null) {
                     this.inputStream = new DecryptInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
@@ -108,6 +121,34 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
     public ServletInputStream getInputStream() throws IOException {
         return this.inputStream == null ? super.getInputStream() : (ServletInputStream) this.inputStream;
     }
+
+
+    /**
+     * 修改header信息，key-value键值对儿加入到header中(利用反射)
+     * @param request
+     * @param key
+     * @param value
+     */
+    private void reflectSetparam(HttpServletRequest request,String key,String value){
+        Class<? extends HttpServletRequest> requestClass = request.getClass();
+        log.debug("request实现类="+requestClass.getName());
+        try {
+            Field request1 = requestClass.getDeclaredField("request");
+            request1.setAccessible(true);
+            Object o = request1.get(request);
+            Field coyoteRequest = o.getClass().getDeclaredField("coyoteRequest");
+            coyoteRequest.setAccessible(true);
+            Object o1 = coyoteRequest.get(o);
+            log.debug("coyoteRequest实现类="+o1.getClass().getName());
+            Field headers = o1.getClass().getDeclaredField("headers");
+            headers.setAccessible(true);
+            MimeHeaders o2 = (MimeHeaders)headers.get(o1);
+            o2.addValue(key).setString(value);
+        } catch (Exception e) {
+            log.error("修改header信息方法",e);
+        }
+    }
+
 
     private class DecryptInputStream extends ServletInputStream {
 
