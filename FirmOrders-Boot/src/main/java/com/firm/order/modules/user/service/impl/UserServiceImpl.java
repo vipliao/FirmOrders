@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.firm.order.utils.*;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -33,10 +34,6 @@ import com.firm.order.modules.user.vo.LoginedUserVO;
 import com.firm.order.modules.user.vo.UserOwnResourceVO;
 import com.firm.order.modules.user.vo.UserResourceReportVO;
 import com.firm.order.modules.user.vo.UserVO;
-import com.firm.order.utils.ChineseToPinyinHelper;
-import com.firm.order.utils.JavaUuidGenerater;
-import com.firm.order.utils.SnowflakeIdGenerater;
-import com.firm.order.utils.SymmetricEncoder;
 
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> implements IUserService {
@@ -99,6 +96,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		if(!password.trim().equals(SymmetricEncoder.AESDncode(encodeRules, user.getPassword().trim())) ){
 			throw new Exception("密码错误！");
 		}
+		/*if(!Md5Util.verify(password.trim(),user.getPassword().trim())){
+			throw new Exception("密码错误！");
+		}*/
 		return user;
 
 	}
@@ -249,8 +249,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			}
 			if(vo1.getPassword()==null || vo1.getPassword().equals("")){
 				vo1.setPassword(SymmetricEncoder.AESEncode(encodeRules, "000000"));
+				//vo1.setPassword(Md5Util.generate("000000"));
 			}else{
 				vo1.setPassword(SymmetricEncoder.AESEncode(encodeRules, vo1.getPassword()));
+				//vo1.setPassword(Md5Util.generate(vo1.getPassword()));
 			}
 		}else{
 			String sql = "select * from user_info where 1=1 and  id ='"+vo.getId()+"'";
