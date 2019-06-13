@@ -126,15 +126,77 @@ export default {
 
     //导出excel文件
     exportExcel: options => {
-        const {url, method, body, success, error} = options;
+        let {url, params,method, body, success, error} = options;
+        const token = sessionStorage.token;
+        function obtainURLParam(url) {
+            url = url == null ? window.location.href : url;
+            let search = url.substring(url.lastIndexOf("?") + 1);
+            let obj = {};
+            let reg = /([^?&=]+)=([^?&=]*)/g;
+            search.replace(reg, function (rs, $1, $2) {
+                let name = decodeURIComponent($1);
+                let val = decodeURIComponent($2);
+                val = String(val);
+                obj[name] = val;
+                return rs;
+            });
+            return obj;
+        }
+
+        function linkURL(obj) {
+            const params = []
+            Object.keys(obj).forEach((key) => {
+                let value = obj[key]
+                // 如果值为undefined我们将其置空
+                if (typeof value === 'undefined') {
+                    value = ''
+                }
+                // 对于需要编码的文本（比如说中文）我们要进行编码
+                params.push([key, encodeURIComponent(value)].join('='))
+            })
+            return params.join('&');
+        }
+        let data = new Object();
+        switch (method.toUpperCase()) {
+            case 'GET':
+                if (token) {
+                    if(params){
+                        if(Object.prototype.toString.call(params) == '[object String]'){
+                            data = JSON.parse(params);
+                        }else if(Object.prototype.toString.call(params) == '[object Object]'){
+                            data = params;
+                        }
+                    }else{
+                        data =obtainURLParam(url);
+                    }
+                    data['X-Auth-Token'] = `${token}`;
+                }
+                let urlPrefix = url.split('?')[0];
+                url = data?`${urlPrefix}?${linkURL({p:Encrypt(data)})}`:url;
+                break;
+            case 'POST':
+                if (token) {
+
+                    if(Object.prototype.toString.call(body) == '[object String]'){
+                        data = JSON.parse(body);
+                    }else if(Object.prototype.toString.call(body) == '[object Object]'){
+                        data = body;
+                    }
+                    data['X-Auth-Token'] = `${token}`;
+                }
+                body =data?Encrypt(data):null;
+                break;
+            default:
+                break;
+        }
         fetch(url, {
             method: method,
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Auth-Token': sessionStorage.token
+                //'X-Auth-Token': sessionStorage.token
             },
-            body: Encrypt(body)
+            body:body
         }).then((response) => {
             const disposition = response.headers.get('Content-Disposition');
             let filename;
@@ -159,5 +221,46 @@ export default {
                 }
             }
         });
-    }
+    },
+
+    /**
+     * 获取url中参数，且以对象返回
+     * @param url
+     * @returns {*}
+     */
+    obtainURLParam: url => {
+        url = url == null ? window.location.href : url;
+        let search = url.substring(url.lastIndexOf("?") + 1);
+        let obj = {};
+        let reg = /([^?&=]+)=([^?&=]*)/g;
+        search.replace(reg, function (rs, $1, $2) {
+            let name = decodeURIComponent($1);
+            let val = decodeURIComponent($2);
+            val = String(val);
+            obj[name] = val;
+            return rs;
+        });
+        return obj;
+    },
+
+    /**
+     * 拼接url
+     * @param param
+     * @param key
+     * @returns {string}
+     */
+    linkURL: (urlPrefix,obj) => {
+        const params = []
+        Object.keys(obj).forEach((key) => {
+            let value = obj[key]
+            // 如果值为undefined我们将其置空
+            if (typeof value === 'undefined') {
+                value = ''
+            }
+            // 对于需要编码的文本（比如说中文）我们要进行编码
+            params.push([key, encodeURIComponent(value)].join('='))
+        })
+        return `${urlPrefix}?${params.join('&')})}`;
+    },
+
 };

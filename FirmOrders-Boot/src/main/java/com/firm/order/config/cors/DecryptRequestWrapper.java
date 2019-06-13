@@ -51,7 +51,7 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
         if (StringUtils.isNotBlank(content)) {
             content = AES.decrypt(content);
             JSONObject obj = JSONObject.parseObject(content);
-            if(obj.containsKey("X-Auth-Token")){
+            if(obj != null && obj.containsKey("X-Auth-Token")){
                 String token = obj.get("X-Auth-Token").toString();
                 if(StringUtils.isNotBlank(token)){
                     reflectSetparam(request,"X-Auth-Token",token);

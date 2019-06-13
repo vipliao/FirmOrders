@@ -15,8 +15,8 @@ axios.interceptors.request.use(config => {
         config.headers['X-Auth-Token'] = `${token}`;
     }*/
     // 数据加密
-    switch (config.method) {
-        case 'get':
+    switch (config.method.toUpperCase()) {
+        case 'GET':
             if (token) {
                 let data=new Object();
                 if(Object.prototype.toString.call(config.params) == '[object String]'){
@@ -29,7 +29,7 @@ axios.interceptors.request.use(config => {
             }
             config.params = config.params?{p:Encrypt(config.params)}:null;
             break;
-        case 'post':
+        case 'POST':
             if (token) {
                 let data = new Object();
                 if(Object.prototype.toString.call(config.data) == '[object String]'){
