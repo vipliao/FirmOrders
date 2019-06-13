@@ -34,12 +34,18 @@ public class EhCacheUtil {
  
     public void put(String cacheName, String key, Object value) {
         Cache cache = manager.getCache(cacheName);
+        if(cache==null){
+            cache = (Cache)manager.addCacheIfAbsent(cacheName);
+        }
         Element element = new Element(key, value);
         cache.put(element);
     }
  
     public Object get(String cacheName, String key) {
         Cache cache = manager.getCache(cacheName);
+        if(cache ==null){
+            return null;
+        }
         Element element = cache.get(key);
         return element == null ? null : element.getObjectValue();
     }
@@ -67,6 +73,8 @@ public class EhCacheUtil {
         UserVO user2=(UserVO) EhCacheUtil.getInstance().get("orderCodeCache", "userJack");
         String str="1";
         System.out.print(user2.getUserName());
+
+        EhCacheUtil.getInstance().remove("orderCodeCache","userEch");
 
 	}
 
