@@ -1,120 +1,96 @@
 import  CryptoJS from 'crypto-js'
+import util from './util'
+import JSEncrypt from './jsencrypt';
 
-/*
-const key = CryptoJS.enc.Hex.parse("1234567890ABCDEF");
-const iv = CryptoJS.enc.Hex.parse("0123456789ABCDEF");
+const serverPublicKey='';
 
-/!**
- * 加密（需要先加载lib/aes/aes.min.js文件）
- *!/
-const Encrypt = (word) => {
-    let srcs = CryptoJS.enc.Hex.parse(word);
-    let encrypted = CryptoJS.AES.encrypt(srcs, key, {
-        iv:iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-    });
-    return encrypted.ciphertext.toString();
-}
-/!**
- * 解密
- *!/
-const Decrypt = (word) => {
-    let decrypt = CryptoJS.AES.decrypt(word, key, {
-        iv:iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-    });
-    return CryptoJS.enc.Hex.stringify(decrypt).toString();
-}
+const clientPrivateKey='';
 
-// BASE64
-const Base64 = {
-    en: (data) => CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data)),
-    de: (data) => CryptoJS.enc.Base64.parse(data).toString(CryptoJS.enc.Utf8)
-};
-// SHA256
-const Sha256 = (data) => {
-    return CryptoJS.SHA256(data).toString();
-};
-// MD5
-const Md5 = (data) => {
-    return CryptoJS.MD5(data).toString();
-};
-
-/!**
- * 签名
- * @param token 身份令牌
- * @param timestamp 签名时间戳
- * @param data 签名数据
- *!/
-const Sign = (token, timestamp, data) => {
-    // 签名格式： timestamp + token + data(字典升序)
-    let ret = [];
-    for (let it in data) {
-        let val = data[it];
-        if (typeof val === 'object' && //
-            (!(val instanceof Array) || (val.length > 0 && (typeof val[0] === 'object')))) {
-            val = JSON.stringify(val);
-        }
-        ret.push(it + val);
-    }
-    // 字典升序
-    ret.sort();
-    let signsrc = timestamp + token + ret.join('');
-    return Md5(signsrc);
-};
-
-export {
-    Encrypt,
-    Decrypt,
-    Md5,
-    Sha256,
-    Base64,
-    Sign
-};
-*/
-
-const key = CryptoJS.enc.Utf8.parse("A-16-Byte-keyVal");
-const iv = CryptoJS.enc.Utf8.parse("A-16-Byte-String");
-
-//aes加密
+/**
+ * AES+RSA加密
+ * @param context
+ * @returns {string}
+ * @constructor
+ */
 const Encrypt =(context) =>{
     if(!context || typeof(context) == 'undefined'){
         return;
     }
-    let encrypted;
+
     if(typeof(context) == 'object'){
         context = JSON.stringify(context);
     }
     let word = CryptoJS.enc.Utf8.parse(context);
+
+    const metadataKey = util.randomString(16);
+    const metadataIv= util.randomString(16);
+
+    //AES加密
+    let aesEncrypted;
+    const key = CryptoJS.enc.Utf8.parse(metadataKey);
+    const iv = CryptoJS.enc.Utf8.parse(metadataIv);
     try {
-        encrypted = CryptoJS.AES.encrypt(word, key, {
+        aesEncrypted = CryptoJS.AES.encrypt(word, key, {
             iv: iv,
             mode: CryptoJS.mode.CBC,
             padding: CryptoJS.pad.Pkcs7
         });
     } catch (e) {
-        console.error('Encryption failed')
+        console.error('AES Encryption failed')
     }
 
-    return encrypted.toString();
+    //RSA加密
+    let rsaEncrypted;
+    try{
+        let rsaEncrypt = new JSEncrypt();
+        rsaEncrypt.setPublicKey(serverPublicKey);
+        rsaEncrypted = rsaEncrypt.encryptLong(
+            JSON.stringify({
+                metadataKey: metadataKey,
+                metadataIv: metadataIv,
+                metadata: aesEncrypted.toString()
+            }));
+    }catch (e) {
+        console.error('RSA Encryption failed')
+    }
+    return rsaEncrypted.toString();
 }
-// aes解密
+
+/**
+ * AES+RSA解密
+ * @param context
+ * @returns {any}
+ * @constructor
+ */
 const Decrypt = (context) =>{
     if(!context || typeof(context) == 'undefined'){
         return;
     }
+
+    //RSA解密
+    let rsaDecryptedJson;
+    try{
+        let rsaDecrypt = new JSEncrypt();
+        rsaDecrypt.setPrivateKey(clientPrivateKey);
+        let rsaDecrypted = rsaDecrypt.decryptLong(context);
+        rsaDecryptedJson = JSON.parse(rsaDecrypted);
+    }catch (e) {
+        console.error('RSA Decryption failed')
+    }
+
+    //AES解密
+    const key = CryptoJS.enc.Utf8.parse(rsaDecryptedJson.metadataKey);
+    const iv = CryptoJS.enc.Utf8.parse(rsaDecryptedJson.metadataIv);
     let decryptedStr;
     try{
-        let decrypt = CryptoJS.AES.decrypt(context, key, {
+        let decrypt = CryptoJS.AES.decrypt(rsaDecryptedJson.metadata, key, {
             iv: iv,
             mode: CryptoJS.mode.CBC,
             padding: CryptoJS.pad.Pkcs7
         });
         decryptedStr = decrypt.toString(CryptoJS.enc.Utf8);
     }catch (e) {
-        console.error('Decryption failed')
+        console.error('AES Decryption failed')
     }
     return JSON.parse(decryptedStr);
 }
