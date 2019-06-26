@@ -1,14 +1,7 @@
 package com.firm.order.config.aouth.filter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.firm.order.utils.AES;
+import com.firm.order.utils.EncryptHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -16,7 +9,12 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.FormAuthenticationFilter;
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 @Slf4j
 public class LoginAuthorizationFilter extends FormAuthenticationFilter{
@@ -45,7 +43,7 @@ public class LoginAuthorizationFilter extends FormAuthenticationFilter{
         PrintWriter out;
         try {
             out = httpServletResponse.getWriter();
-            out.println(AES.encrypt(errorMsg));
+            out.println(EncryptHelper.encrypt(errorMsg));
             out.flush();
             out.close();
         } catch (IOException e1) {

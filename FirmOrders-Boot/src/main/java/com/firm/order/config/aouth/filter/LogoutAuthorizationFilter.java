@@ -1,14 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Locale;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-
-import com.firm.order.utils.AES;
+import com.firm.order.utils.EncryptHelper;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -17,6 +9,13 @@ import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.apache.shiro.web.util.WebUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Locale;
 
 public class LogoutAuthorizationFilter extends LogoutFilter {
 	private static final Logger log = LoggerFactory.getLogger(LogoutAuthorizationFilter.class);
@@ -57,7 +56,7 @@ public class LogoutAuthorizationFilter extends LogoutFilter {
 			PrintWriter out;
 			try {
 				out = httpServletResponse.getWriter();
-				out.println(AES.encrypt(reMsg));
+				out.println(EncryptHelper.encrypt(reMsg));
 				out.flush();
 				out.close();
 			} catch (IOException e1) {
