@@ -19,6 +19,7 @@
         "draftjs-to-html": "^0.8.4",
         "echarts": "^4.1.0",
         "html-to-draftjs": "^1.4.0",
+        "jsrsasign": "^8.0.12",
         "prop-types": "^15.6.2",
         "rc-form": "^2.2.3",
         "react-custom-scrollbars": "^4.2.1",

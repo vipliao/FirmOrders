@@ -42,7 +42,7 @@ public class RSAUtils {
 	/**
 	 * 签名算法
 	 */
-	public static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+	public static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 
 	/** */
 	/**
@@ -137,15 +137,21 @@ public class RSAUtils {
 	 * @throws Exception
 	 * 
 	 */
-	public static boolean verify(byte[] data, String publicKey, String sign) throws Exception {
-		byte[] keyBytes = Base64.decodeBase64(publicKey);
+	public static boolean verify(String data, String publicKey, String sign)  {
+		try{
+			byte[] keyBytes = Base64.decodeBase64(publicKey);
 		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
 		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
 		PublicKey publicK = keyFactory.generatePublic(keySpec);
 		Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
 		signature.initVerify(publicK);
-		signature.update(data);
-		return signature.verify(Base64.decodeBase64(sign));
+		signature.update(data.getBytes("UTF-8"));
+		boolean verify = signature.verify(Base64.decodeBase64(sign));
+		return verify;
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	/** */
@@ -348,24 +354,25 @@ public class RSAUtils {
 	/**
 	 * java端公钥加密
 	 */
-	public static String encryptedDataOnJava(String data, String PUBLICKEY) {
+	public static String encryptedDataOnJava(String data, String publicKey) {
+		String result=null;
 		try {
-			return Base64.encodeBase64String(encryptByPublicKey(data.getBytes(), PUBLICKEY));
+			result  = Base64.encodeBase64String(encryptByPublicKey(data.getBytes(), publicKey));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return data;
+		return result;
 	}
 
 	/**
 	 * java端私钥解密
 	 */
-	public static String decryptDataOnJava(String data, String PRIVATEKEY) {
+	public static String decryptDataOnJava(String data, String privateKey) {
 		String temp = "";
 		try {
 			byte[] rs = Base64.decodeBase64(data);
-			temp = new String(RSAUtils.decryptByPrivateKey(rs, PRIVATEKEY),"UTF-8");
+			temp = new String(RSAUtils.decryptByPrivateKey(rs, privateKey),"UTF-8");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

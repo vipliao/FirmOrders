@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.MimeHeaders;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 
 import javax.servlet.ReadListener;
@@ -26,8 +25,6 @@ import java.util.*;
 @Slf4j
 public class DecryptRequestWrapper extends HttpServletRequestWrapper {
 
-    @Value("${server.private.key}")
-    private  String SERVER_PRIVATE_KEY="MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ9d8zOCDiblFEuDa9ytgEU3iwGETVW1bWwGRfELnC0JFo5m/SS52T0IhB9Tpz54RppkpSfKDEdZ1Kp3BREITQgqAtyiVcX5Eea7+uX3vsV+NGD2kCQGDnPTk98cOpaqQiypfSJFpI/fUFRk6C3Bp9uIG/Z0G9EEx2rTe3Lirw5BAgMBAAECgYBtt2Ga4XvavTWWs1jL6cr4XD/gAHS5gBlgGIWIaMTRoIMd8Ltw0F5GDZngc1gdwvJgks+9L/X6HVczMJOVYVCeKwuBo6JcgK64lhh58wcOlMVcUSydIN4QXbUcWmPnqTsZ1xErTQSdF6ybbNbP02Kf9VL0c/2SEnFx+hlQv4ZoPQJBAM/HxXGisWmA4WMU6WSw5zN78ms85v9nAUb16eHTxEA+Gopn/0kZVdZG7DOudcC9B3h8Q+pDlZ+aY3JL0246K/cCQQDEWfD4W5xmJsr7Jf/G/i00iqMsEoaosBN8EbuyoTqGAauazqdRREv906y8Z43m+UcdyUyyvev+qya2ohDkz1mHAkBhJ5QXEm/KWU0KO1j2kBFLbYVox01r1wot2AbIZXC6aU+XsBEaaRJN41PGxqigusKnf9Nx0rA/tL0TUIlIXUL5AkEAkbima8uhkPZtYmLbJtXwurPBUa4WHg8/Bq8qe/HIOzf2IZgI+PkU5LY51kGMQMT0EJkawPTOtlxTCOvSWd3A9QJBALYU/fjwJsgA9z6/+yV60JX0TmqrS6HBP4MZ72ICDmgfrL7Fy/q+mmMWn952wxA05eqssl7mnXX0PHekdmrd9JU=";
 
     private static final String APPLICATION_JSON = "application/json";
     /**
@@ -54,20 +51,23 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
         // 解密
         if (StringUtils.isNotBlank(content)) {
             content = EncryptHelper.decrypt(content);
-            JSONObject deData2obj = JSONObject.parseObject(content);
-            if(deData2obj != null && deData2obj.containsKey("X-Auth-Token")){
-                String token = deData2obj.get("X-Auth-Token").toString();
-                if(StringUtils.isNotBlank(token)){
-                    reflectSetparam(request,"X-Auth-Token",token);
-                    content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+            if(StringUtils.isNotBlank(content)){
+                JSONObject deData2obj = JSONObject.parseObject(content);
+                if(deData2obj != null && deData2obj.containsKey("X-Auth-Token")){
+                    String token = deData2obj.get("X-Auth-Token").toString();
+                    if(StringUtils.isNotBlank(token)){
+                        reflectSetparam(request,"X-Auth-Token",token);
+                        content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+                    }
                 }
-            }
-            if (null != contentType && contentType.contains(APPLICATION_JSON)) {
-                if (this.inputStream == null) {
-                    this.inputStream = new DecryptInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
+                if (null != contentType && contentType.contains(APPLICATION_JSON)) {
+                    if (this.inputStream == null) {
+                        this.inputStream = new DecryptInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
+                    }
                 }
+                parameterMap = buildParams(content);
             }
-            parameterMap = buildParams(content);
+
         }
 
     }
