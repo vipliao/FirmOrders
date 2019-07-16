@@ -3,6 +3,7 @@ import util from './util'
 import JSEncrypt from './jsencrypt';
 import Jsrsasign from 'jsrsasign';
 
+
 const serverPublicKey='MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCCfoK7cvveWXg8TIqhc5oQEiqwqeeUwxAmRC5q' +
     'aWqhZNnCYZGK4sOhNmR1LHRsELsPUKPBfAnujqmR7N53Cik3895PDPqVSpz/esxlYUZxq4BSxC881fAZepYG7R0A' +
     'P01GjhhHejiS0R62jO6UxWlUqIhb6tG39JdGbxVSF3cRJQIDAQAB';
@@ -79,7 +80,7 @@ const Encrypt =(context) =>{
         let signStartPart = sign.toString().substr(0,9);
         let signEndPart = sign.toString().substr(9,sign.toString().length);
         let signEndPartLengthStr = signEndPart.length.toString();
-        let interStr = intersectStr(util.randomString(16,true),signEndPartLengthStr);
+        let interStr = util.intersectString(util.randomString(16,true),signEndPartLengthStr);
         encrypted = signStartPart+rStrStartPart+rsaEncrypted.toString()+signEndPart+rStrEndPart+"/"+interStr
 
     }catch (e) {
@@ -132,40 +133,3 @@ export {
     Decrypt,
 };
 
-/**
- * 交叉拼接字符串
- * @param str1
- * @param str2
- * @returns {string}
- */
-const intersectStr = (str1, str2) => {
-    let result='';
-    if (!str1 || !str2) {
-        return;
-    }
-    if (!/^[A-Za-z0-9]+$/.test(str1) || !/^[A-Za-z0-9]+$/.test(str2)) {
-        return;
-    }
-    if (str1.length >= str2.length) {
-        for (let i = 0; i < str1.length; i++) {
-            if (i < str2.length) {
-                result += str1[i] + str2[i] ;
-            } else {
-                result += str1[i];
-            }
-
-        }
-        result = result + 'S';
-    } else {
-        for (let i = 0; i < str2.length; i++) {
-            if (i < str1.length) {
-                result += str1[i] +  str2[i] ;
-            } else {
-                result +=str2[i] ;
-            }
-
-        }
-        result = result + 'B';
-    }
-    return result;
-}

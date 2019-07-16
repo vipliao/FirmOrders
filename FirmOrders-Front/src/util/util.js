@@ -289,5 +289,43 @@ export default {
         return pwd;
     },
 
+    /**
+     * 交叉拼接字符串
+     * @param str1
+     * @param str2
+     * @returns {string}
+     */
+    intersectString : (str1, str2) => {
+        let result='';
+        if (!str1 || !str2) {
+            return;
+        }
+        if (!/^[A-Za-z0-9]+$/.test(str1) || !/^[A-Za-z0-9]+$/.test(str2)) {
+            return;
+        }
+        if (str1.length >= str2.length) {
+            for (let i = 0; i < str1.length; i++) {
+                if (i < str2.length) {
+                    result += str1[i] + str2[i] ;
+                } else {
+                    result += str1[i];
+                }
+
+            }
+            result = result + 'S';
+        } else {
+            for (let i = 0; i < str2.length; i++) {
+                if (i < str1.length) {
+                    result += str1[i] +  str2[i] ;
+                } else {
+                    result +=str2[i] ;
+                }
+
+            }
+            result = result + 'B';
+        }
+        return result;
+    }
+
 
 };
