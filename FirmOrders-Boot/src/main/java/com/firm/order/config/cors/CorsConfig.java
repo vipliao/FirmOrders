@@ -30,7 +30,7 @@ public class CorsConfig implements Filter {
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
         httpResponse.setHeader("Access-Control-Allow-Headers", "x-requested-with,Access-Control,Content-Type");
         //httpResponse.setHeader("Access-Control-Expose-Headers","Content-Disposition");
-        chain.doFilter(new  ServletRequestWrapper(httpRequest), response);
+        chain.doFilter(new ServletRequestWrapper(httpRequest), response);
 
 
     }
