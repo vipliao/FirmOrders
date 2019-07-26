@@ -74,8 +74,7 @@ public class DecryptRequestWrapper extends HttpServletRequestWrapper {
 
     private Map<String, String[]> buildParams(String src) {
         Map<String, String[]> map = new HashMap<>();
-        Map<String, String> params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {
-        });
+        Map<String, String> params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {});
         for (String key : params.keySet()) {
             map.put(key, new String[]{params.get(key)});
         }

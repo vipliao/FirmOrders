@@ -2,6 +2,7 @@ package com.firm.order;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Bean;
 
 import com.firm.order.config.propertyresolver.FirmEncryptablePropertyResolver;
@@ -10,6 +11,7 @@ import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyDetector;
 import com.ulisesbocchio.jasyptspringboot.EncryptablePropertyResolver;
 
 @SpringBootApplication
+@ServletComponentScan
 //@ImportResource(locations={"classpath:application-quartz.xml"})
 public class FirmOrdersBootApplication {
 	@Bean

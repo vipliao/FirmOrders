@@ -18,6 +18,7 @@
         "draft-js": "^0.10.5",
         "draftjs-to-html": "^0.8.4",
         "echarts": "^4.1.0",
+
         "html-to-draftjs": "^1.4.0",
         "jsrsasign": "^8.0.12",
         "prop-types": "^15.6.2",
