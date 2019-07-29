@@ -54,30 +54,28 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         super(request);
         originalRequest = request;
 
-        //非json类型，直接返回
-        String contentType = getHeader(HttpHeaders.CONTENT_TYPE);
-        if(null == contentType || !contentType.contains(MediaType.APPLICATION_JSON_VALUE)){
-            return;
-        }
-
         //解密
         String content = decrypt(request);
 
-        if(StringUtils.isNotBlank(content)){
+        if (StringUtils.isNotBlank(content)) {
             //sql注入过滤
             SQLFilter.sqlInject(content);
         }
-        if(StringUtils.isNotBlank(content)){
+        if (StringUtils.isNotBlank(content)) {
             //xss过滤
             content = xssEncode(content);
         }
-        if(StringUtils.isNotBlank(content)){
+        if (StringUtils.isNotBlank(content)) {
+            String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
+            if (null != contentType && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
+                if (this.inputStream == null) {
+                    this.inputStream = new ServletRequestInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
+                }
 
-            if (this.inputStream == null) {
-                this.inputStream = new ServletRequestInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
             }
             parameterMap = buildParams(content);
         }
+
 
     }
 
@@ -85,8 +83,6 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
     public ServletInputStream getInputStream() throws IOException {
         return this.inputStream == null ? super.getInputStream() : (ServletInputStream) this.inputStream;
     }
-
-
 
 
     @Override
@@ -112,15 +108,18 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
     }
 
     @Override
-    public Map<String,String[]> getParameterMap() {
-        Map<String,String[]> map = new LinkedHashMap<>();
-        Map<String,String[]> parameters = null == parameterMap ? super.getParameterMap() : parameterMap;
-        for (String key : parameters.keySet()) {
-            String[] values = parameters.get(key);
-            for (int i = 0; i < values.length; i++) {
-                values[i] = xssEncode(values[i]);
+    public Map<String, String[]> getParameterMap() {
+
+        Map<String, String[]> map = new LinkedHashMap<>();
+        Map<String, String[]> parameters = null == parameterMap ? super.getParameterMap() : parameterMap;
+        if (parameters != null) {
+            for (String key : parameters.keySet()) {
+                String[] values = parameters.get(key);
+                for (int i = 0; i < values.length; i++) {
+                    values[i] = xssEncode(values[i]);
+                }
+                map.put(key, values);
             }
-            map.put(key, values);
         }
         return map;
     }
@@ -152,6 +151,7 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * 请求数据解密
+     *
      * @param request
      * @return
      */
@@ -163,18 +163,18 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         } else if (method.toUpperCase().equals("POST")) {
             byte[] data = IOUtils.toByteArray(request.getInputStream());
             content = new String(data);
-        }else{
+        } else {
             return null;
         }
         // 解密
         if (StringUtils.isNotBlank(content)) {
             content = EncryptHelper.decrypt(content);
-            if(StringUtils.isNotBlank(content)){
+            if (StringUtils.isNotBlank(content)) {
                 JSONObject deData2obj = JSONObject.parseObject(content);
-                if(deData2obj != null && deData2obj.containsKey("X-Auth-Token")){
+                if (deData2obj != null && deData2obj.containsKey("X-Auth-Token")) {
                     String token = deData2obj.get("X-Auth-Token").toString();
-                    if(StringUtils.isNotBlank(token)){
-                        reflectSetparam(request,"X-Auth-Token",token);
+                    if (StringUtils.isNotBlank(token)) {
+                        reflectSetparam(request, "X-Auth-Token", token);
                         content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
                     }
                 }
@@ -187,13 +187,14 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * 修改header信息，key-value键值对儿加入到header中(利用反射)
+     *
      * @param request
      * @param key
      * @param value
      */
-    private void reflectSetparam(HttpServletRequest request,String key,String value){
+    private void reflectSetparam(HttpServletRequest request, String key, String value) {
         Class<? extends HttpServletRequest> requestClass = request.getClass();
-        log.debug("request实现类="+requestClass.getName());
+        log.debug("request实现类=" + requestClass.getName());
         try {
             Field request1 = requestClass.getDeclaredField("request");
             request1.setAccessible(true);
@@ -201,24 +202,26 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
             Field coyoteRequest = o.getClass().getDeclaredField("coyoteRequest");
             coyoteRequest.setAccessible(true);
             Object o1 = coyoteRequest.get(o);
-            log.debug("coyoteRequest实现类="+o1.getClass().getName());
+            log.debug("coyoteRequest实现类=" + o1.getClass().getName());
             Field headers = o1.getClass().getDeclaredField("headers");
             headers.setAccessible(true);
-            MimeHeaders o2 = (MimeHeaders)headers.get(o1);
+            MimeHeaders o2 = (MimeHeaders) headers.get(o1);
             o2.addValue(key).setString(value);
         } catch (Exception e) {
-            log.error("修改header信息方法",e);
+            log.error("修改header信息方法", e);
         }
     }
 
     /**
      * 转化map
+     *
      * @param src
      * @return
      */
     private Map<String, String[]> buildParams(String src) {
         Map<String, String[]> map = new HashMap<>();
-        Map<String, String> params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {});
+        Map<String, String> params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {
+        });
         for (String key : params.keySet()) {
             map.put(key, new String[]{params.get(key)});
         }
@@ -228,6 +231,7 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * xss过滤
+     *
      * @param input
      * @return
      */
