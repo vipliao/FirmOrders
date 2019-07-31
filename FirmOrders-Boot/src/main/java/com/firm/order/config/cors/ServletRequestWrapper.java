@@ -57,15 +57,25 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         //解密
         String content = decrypt(request);
 
+        //sql注入过滤
         if (StringUtils.isNotBlank(content)) {
-            //sql注入过滤
             SQLFilter.sqlInject(content);
         }
+
+        //xss过滤
         if (StringUtils.isNotBlank(content)) {
-            //xss过滤
             content = xssEncode(content);
         }
+
         if (StringUtils.isNotBlank(content)) {
+            JSONObject deData2obj = JSONObject.parseObject(content);
+            if(deData2obj != null && deData2obj.containsKey("X-Auth-Token")){
+                String token = deData2obj.get("X-Auth-Token").toString();
+                if(StringUtils.isNotBlank(token)){
+                    reflectSetparam(request,"X-Auth-Token",token);
+                    content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+                }
+            }
             String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
             if (null != contentType && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
                 if (this.inputStream == null) {
@@ -87,6 +97,10 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public String getParameter(String name) {
+        String[] values = getParameterMap().get(name);
+        if (values != null) {
+            return (values.length > 0 ? xssEncode(values[0]) : null);
+        }
         String value = super.getParameter(xssEncode(name));
         if (StringUtils.isNotBlank(value)) {
             value = xssEncode(value);
@@ -96,15 +110,17 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public String[] getParameterValues(String name) {
-        String[] parameters = super.getParameterValues(name);
-        if (parameters == null || parameters.length == 0) {
+        String[] values = getParameterMap().get(name);
+        if (values == null || values.length == 0) {
+            values = super.getParameterValues(name);
+        }
+        if (values == null || values.length == 0) {
             return null;
         }
-
-        for (int i = 0; i < parameters.length; i++) {
-            parameters[i] = xssEncode(parameters[i]);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = xssEncode(values[i]);
         }
-        return parameters;
+        return values;
     }
 
     @Override
@@ -163,24 +179,10 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         } else if (method.toUpperCase().equals("POST")) {
             byte[] data = IOUtils.toByteArray(request.getInputStream());
             content = new String(data);
-        } else {
-            return null;
         }
         // 解密
         if (StringUtils.isNotBlank(content)) {
             content = EncryptHelper.decrypt(content);
-            if (StringUtils.isNotBlank(content)) {
-                JSONObject deData2obj = JSONObject.parseObject(content);
-                if (deData2obj != null && deData2obj.containsKey("X-Auth-Token")) {
-                    String token = deData2obj.get("X-Auth-Token").toString();
-                    if (StringUtils.isNotBlank(token)) {
-                        reflectSetparam(request, "X-Auth-Token", token);
-                        content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
-                    }
-                }
-
-            }
-
         }
         return content;
     }
