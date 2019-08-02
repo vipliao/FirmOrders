@@ -1,6 +1,7 @@
 package com.firm.order.utils;
 
-import sun.misc.BASE64Encoder;
+import org.apache.commons.codec.binary.Base64;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -28,7 +29,7 @@ public class Md5Util {
 
         byte[] md5Bytes = md5.digest(byteArray);
 
-        System.out.println(new BASE64Encoder().encode(md5Bytes));
+        System.out.println( Base64.encodeBase64String(md5Bytes));
         StringBuffer hexValue = new StringBuffer();
         //将加密完的字符串，全部转成0-9、a-f的字符串
         for (int i = 0; i < md5Bytes.length; i++) {
@@ -124,7 +125,7 @@ public class Md5Util {
         try {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             byte[] bs = md5.digest(src.getBytes());
-            return new String(new BASE64Encoder().encode(bs));
+            return  Base64.encodeBase64String(bs);
         } catch (Exception e) {
             return null;
         }
