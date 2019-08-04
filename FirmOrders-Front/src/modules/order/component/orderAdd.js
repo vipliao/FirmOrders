@@ -481,7 +481,8 @@ class Index extends React.Component {
 
     formWareHouseChange = value =>{
         console.log('formWareHouseChange---'+value+'--');
-        if(value){
+        let currentWarehouse = this.props.form.getFieldValue("warehouse");
+        if(value && value != currentWarehouse){
             let {selectedProduct,selectedRowKeys} = this.state;
             let isSame=true;
             let partSelectProduct=[];
@@ -498,7 +499,10 @@ class Index extends React.Component {
                 let wareHouseName = partSelectProduct[0].wareHouseName;
                 if(value != wareHouse){
                     Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择产品！`);
-                    this.props.form.setFieldsValue({'warehouse':wareHouse});
+                    this.props.form.setFieldsValue({
+                        'warehouse':wareHouse,
+                        'expressCompany':''
+                    });
                     isSame =false
                 }
             }

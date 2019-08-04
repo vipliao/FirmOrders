@@ -269,9 +269,9 @@ class Index extends React.Component {
     }
 
     setSelectData = () => {
-        let data = this.state.orderProduct;
-        let rowKeys = data.map(item => item.productId);
-        let rows = data.map(item => {
+        let {data ,orderProduct}= this.state;
+        let rowKeys = orderProduct.map(item => item.productId);
+        let rows = orderProduct.map(item => {
             return {
                 _id: item.id,
                 id: item.productId,
@@ -286,8 +286,34 @@ class Index extends React.Component {
                 voState: item.voState
             }
         });
-        console.log('rowKeys ===', rowKeys);
+        let currentWareHouse = data.warehouse;
+        let optionValues=[];
+        if(currentWareHouse=="004"){
+            optionValues=[
+                (<Option key='2' value={2}>圆通</Option>),
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>),
+                (<Option key='4' value={4}>德邦</Option>),
+                (<Option key='5' value={5}>联邦</Option>)
+            ]
+
+        }else  if(currentWareHouse=="005"){
+            optionValues=[
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>)
+            ]
+        }else{
+            optionValues=[
+                (<Option key='2' value={2}>圆通</Option>),
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>),
+                (<Option key='3' value={3}>中通</Option>),
+                (<Option key='4' value={4}>德邦</Option>),
+                (<Option key='5' value={5}>联邦</Option>)
+            ]
+        }
         this.setState({
+            optionValues:optionValues,
             selectedRowKeys: rowKeys,
             selectedProduct: rows
         });
@@ -593,7 +619,8 @@ class Index extends React.Component {
 
     formWareHouseChange = value =>{
         console.log('formWareHouseChange---'+value+'--');
-        if(value){
+        let currentWarehouse = this.props.form.getFieldValue("warehouse");
+        if(value && value != currentWarehouse){
             let {selectedProduct,selectedRowKeys} = this.state;
             let isSame=true;
             let partSelectProduct=[];
@@ -610,7 +637,10 @@ class Index extends React.Component {
                 let wareHouseName = partSelectProduct[0].wareHouseName;
                 if(value != wareHouse){
                     Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择产品！`);
-                    this.props.form.setFieldsValue({'warehouse':wareHouse});
+                    this.props.form.setFieldsValue({
+                        'warehouse':wareHouse,
+                        'expressCompany':''
+                    });
                     isSame =false
                 }
             }
