@@ -31,7 +31,7 @@
         </property>
         <!-- cron表达式 -->
         <property name="cronExpression">
-            <value>0 0 10 * * ?</value>
+            <value>0 0 16 * * ?</value>
         </property>
     </bean>
     
