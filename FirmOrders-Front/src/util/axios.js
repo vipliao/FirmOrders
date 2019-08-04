@@ -11,11 +11,11 @@ axios.interceptors.request.use(config => {
     // 在发送请求之前做些什么
     //设置token
     const token = sessionStorage.getItem('token');
-   /* if (token) {
+	if (token) {
         config.headers['X-Auth-Token'] = `${token}`;
-    }*/
+    }
     // 数据加密
-    switch (config.method.toUpperCase()) {
+    /*switch (config.method.toUpperCase()) {
         case 'GET':
             if (token) {
                 let data=new Object();
@@ -44,20 +44,8 @@ axios.interceptors.request.use(config => {
             break;
         default:
             break;
-    }
+    }*/
 
-
-    // 签名串
-    let timestamp = new Date().getTime();
-
-
-    /*let signstr = Sign(token, timestamp, config.data);
-    console.log('token', token);
-    console.log('signstr', signstr);
-
-    config.headers['timestamp'] = `${timestamp}`;
-    config.headers['signstr'] = `${signstr}`;
-*/
     return config;
 }, error => {
     // 对请求错误做些什么
@@ -67,9 +55,9 @@ axios.interceptors.request.use(config => {
 // 添加响应拦截器
 axios.interceptors.response.use(response => {
     //解密
-    if(response.data ){
+   /* if(response.data ){
         response.data = Decrypt(response.data);
-    }
+    }*/
     // 对响应数据做点什么
     if (response.status === 401) {
         window.location.hash = '/login';
