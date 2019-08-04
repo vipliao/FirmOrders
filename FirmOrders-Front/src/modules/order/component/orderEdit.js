@@ -341,13 +341,16 @@ class Index extends React.Component {
         let {tempSelectedRowKeys, tempSelectedRow, selectedProduct} = this.state;
         /* 判断临时选中的行是否有已经删除的接口返回的产品数据，有则把voState重置为2，更新态 */
         selectedProduct.map(item => {
-            if (item.orderId) {
-                if (indexOf(tempSelectedRowKeys, item.id) > -1) {
-                    item.voState = 2;
+            if(item.voState !=3){
+                if (item.orderId) {
+                    if (indexOf(tempSelectedRowKeys, item.id) > -1) {
+                        item.voState = 2;
+                    }
+                } else {
+                    item.voState = 1;
                 }
-            } else {
-                item.voState = 1;
             }
+
         });
         tempSelectedRow = uniqBy(tempSelectedRow.concat(selectedProduct), 'id');
         tempSelectedRow = tempSelectedRow.filter(item => includes(tempSelectedRowKeys.concat(selectedProduct.map(item => item.id)), item.id));
@@ -379,6 +382,11 @@ class Index extends React.Component {
                 (<Option key='5' value={5}>联邦</Option>)
             ]
 
+        }else  if(currentWareHouse=="005"){
+            optionValues=[
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>)
+            ]
         }else{
             optionValues=[
                 (<Option key='2' value={2}>圆通</Option>),
@@ -428,7 +436,13 @@ class Index extends React.Component {
     setEachProNumber = (val, record, index) => {
         let data = this.state.selectedProduct;
         record.pnumber = val ? val : 1;
-        data[index] = record;
+        if(data && data.length>0){
+            data.forEach(function (item) {
+                if(item.id && item.id==record.id){
+                    item = record;
+                }
+            })
+        }
         this.setState({
             selectedProduct: data
         })
@@ -527,9 +541,18 @@ class Index extends React.Component {
         e.preventDefault();
         this.props.form.validateFields((err, values) => {
             if (!err) {
-
-                const {data, selectedProduct} = this.state;
+                let {data, selectedProduct} = this.state;
+                let validSelectedProduct =[];
                 if (selectedProduct.length === 0) {
+                    Message.warning('请添加相关产品！');
+                    return;
+                }
+                selectedProduct.forEach(function (item) {
+                    if(item.voState != 3){
+                        validSelectedProduct.push(item);
+                    }
+                })
+                if (validSelectedProduct.length === 0) {
                     Message.warning('请添加相关产品！');
                     return;
                 }
@@ -554,6 +577,25 @@ class Index extends React.Component {
                         voState: item.voState || 1
                     }
                 });
+                let comBin = [];
+                if(data.childrenDetail && data.childrenDetail.length>0){
+                    data.childrenDetail.forEach(function (item) {
+                        let has = false;
+                        values.childrenDetail.forEach(function (p) {
+                            if(item.id && item.id == p.id ){
+                                has = true;
+                                return;
+                            }
+                        })
+                        if(!has){
+                            item.voState =3;
+                            comBin.push(item);
+                        }
+                    })
+                }
+                if(comBin.length>0){
+                    values.childrenDetail = values.childrenDetail.concat(comBin);
+                }
                 console.log('handleSubmit  param === ', values);
                 this.setState({
                     submitLoading: true
@@ -580,13 +622,24 @@ class Index extends React.Component {
     formWareHouseChange = value =>{
         console.log('formWareHouseChange---'+value+'--');
         if(value){
-            const {selectedProduct} = this.state;
+            let {selectedProduct,selectedRowKeys} = this.state;
+            let isSame=true;
+            let partSelectProduct=[];
             if(selectedProduct && selectedProduct instanceof  Array && selectedProduct.length>0){
-                let wareHouse = selectedProduct[0].wareHouse;
-                let wareHouseName = selectedProduct[0].wareHouseName;
+                selectedProduct.forEach(function (item) {
+                    if(!item.voState || item.voState !=3){
+                        partSelectProduct.push(item);
+                    }
+                });
+
+            }
+            if(partSelectProduct && partSelectProduct.length>0){
+                let wareHouse = partSelectProduct[0].wareHouse;
+                let wareHouseName = partSelectProduct[0].wareHouseName;
                 if(value != wareHouse){
-                    Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择！`);
+                    Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择产品！`);
                     this.props.form.setFieldsValue({'warehouse':wareHouse});
+                    isSame =false
                 }
             }
             let optionValues=[];
@@ -599,6 +652,11 @@ class Index extends React.Component {
                     (<Option key='5' value={5}>联邦</Option>)
                 ]
 
+            }else if(value=="005"){
+                optionValues=[
+                    (<Option key='0' value={0}>顺丰</Option>),
+                    (<Option key='1' value={1}>邮政</Option>),
+                ]
             }else{
                 optionValues=[
                     (<Option key='2' value={2}>圆通</Option>),
@@ -610,7 +668,9 @@ class Index extends React.Component {
                 ]
             }
             this.setState({
-                optionValues :optionValues
+                optionValues :optionValues,
+                selectedProduct:isSame?selectedProduct:[],
+                selectedRowKeys:isSame?selectedRowKeys:[]
             });
         }
     }

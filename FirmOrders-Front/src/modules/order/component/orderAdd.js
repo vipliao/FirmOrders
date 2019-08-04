@@ -295,6 +295,11 @@ class Index extends React.Component {
                 (<Option key='5' value={5}>联邦</Option>)
             ]
 
+        }else if(currentWareHouse=="005"){
+            optionValues=[
+                (<Option key='0' value={0}>顺丰</Option>),
+                (<Option key='1' value={1}>邮政</Option>)
+            ]
         }else{
             optionValues=[
                 (<Option key='2' value={2}>圆通</Option>),
@@ -342,7 +347,13 @@ class Index extends React.Component {
     setEachProNumber = (val, record, index) => {
         let data = this.state.selectedProduct;
         record.number = val ? val : 1;
-        data[index] = record;
+        if(data && data.length>0){
+            data.forEach(function (item) {
+                if(item.id && item.id==record.id){
+                    item = record;
+                }
+            })
+        }
         this.setState({
             selectedProduct: data
         })
@@ -474,13 +485,24 @@ class Index extends React.Component {
     formWareHouseChange = value =>{
         console.log('formWareHouseChange---'+value+'--');
         if(value){
-            const {selectedProduct} = this.state;
+            let {selectedProduct,selectedRowKeys} = this.state;
+            let isSame=true;
+            let partSelectProduct=[];
             if(selectedProduct && selectedProduct instanceof  Array && selectedProduct.length>0){
-                let wareHouse = selectedProduct[0].wareHouse;
-                let wareHouseName = selectedProduct[0].wareHouseName;
+                selectedProduct.forEach(function (item) {
+                    if(!item.voState || item.voState !=3){
+                        partSelectProduct.push(item);
+                    }
+                });
+
+            }
+            if(partSelectProduct && partSelectProduct.length>0){
+                let wareHouse = partSelectProduct[0].wareHouse;
+                let wareHouseName = partSelectProduct[0].wareHouseName;
                 if(value != wareHouse){
-                    Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择！`);
+                    Message.warning(`已添加的产品仓库为${wareHouseName},订单所选仓库不匹配,请重新选择产品！`);
                     this.props.form.setFieldsValue({'warehouse':wareHouse});
+                    isSame =false
                 }
             }
             let optionValues=[];
@@ -493,6 +515,11 @@ class Index extends React.Component {
                         (<Option key='5' value={5}>联邦</Option>)
                     ]
 
+            }else if(value=="005"){
+                optionValues=[
+                    (<Option key='0' value={0}>顺丰</Option>),
+                    (<Option key='1' value={1}>邮政</Option>)
+                ]
             }else{
                 optionValues=[
                     (<Option key='2' value={2}>圆通</Option>),
@@ -504,7 +531,9 @@ class Index extends React.Component {
                 ]
             }
             this.setState({
-                optionValues :optionValues
+                optionValues :optionValues,
+                selectedProduct:isSame?selectedProduct:[],
+                selectedRowKeys:isSame?selectedRowKeys:[]
             });
         }
     }
