@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -32,7 +31,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -115,7 +113,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				//当天时间过了10点,不能新增发货时间为今天的订单
 				String deliverDateStr = new SimpleDateFormat("yyMMdd").format(vo.getDeliverDate());
 				String today = new SimpleDateFormat("yyMMdd").format(new Date());
-				Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
+				Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 16:00:00");
 				if(today.equals(deliverDateStr) && new Date().getTime()>todayLockTime.getTime()){
 					throw new Exception("发货日期为今天的订单不处于业务员可操作的状态!");
 				}
@@ -267,6 +265,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		String productIdListStr = productIdList.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
 				.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
 		List<ProductVO> products = jdbcTemplate.query("select * from product_info where id in "+productIdListStr,new BeanPropertyRowMapper<ProductVO>(ProductVO.class));
+		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
+		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 		for (OrderProductVO productVO : vo.getChildrenDetail()) {
 			if (productVO.getProductCostPrice() == null
 					|| productVO.getProductCostPrice().compareTo(new BigDecimal(0.00)) <= 0) {
@@ -289,6 +289,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				throw new Exception("产品" + productVO.getProductName() + "数量不能为空！");
 			}
 			sumProductCost = sumProductCost.add(productVO.getPnumber().multiply(productVO.getProductCostPrice()));
+			 if (warehouseVO != null && "005".equals(warehouseVO.getCode())) {
+                 sumProductCost = sumProductCost.add(productVO.getPnumber().multiply(new BigDecimal(18)));
+             }
 		}
 		
 		if (vo.getCollectionAmout() == null || vo.getCollectionAmout().compareTo(new BigDecimal(0.00)) <= 0) {
@@ -300,8 +303,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		vo.setTotalAmount(vo.getDepositAmout().add(vo.getCollectionAmout()));
 		BigDecimal costAmount =new BigDecimal(0.00);
 		
-		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
-		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
+		
 		if(warehouseVO != null){
 			if(warehouseVO.getBizRange()==1){
 				//蜂蜜
@@ -312,27 +314,32 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				 *  成本比例=仓库成本费用/订单总金额
 				 * ==========================================================================
 				 */
-				
-				if (vo.getExpressCompany()==0){
-					//顺丰
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
-				}if (vo.getExpressCompany()==1){
-					//邮政
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))));
-				}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
-					//中通或圆通
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(9)));
-				}else if(vo.getExpressCompany()==4){
-					//德邦
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
-				}else if(vo.getExpressCompany()==5) {
-					//联邦
-					costAmount = sumProductCost.add(new BigDecimal(5.5));
-				}
+				if ("005".equals(warehouseVO.getCode())) {
+                    costAmount = sumProductCost.add(new BigDecimal(3)).add(vo.getCollectionAmout().multiply(new BigDecimal(0.02)));
+                } else {
+					if (vo.getExpressCompany()==0){
+						//顺丰
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
+					}if (vo.getExpressCompany()==1){
+						//邮政
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))));
+					}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
+						//中通或圆通
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(9)));
+					}else if(vo.getExpressCompany()==4){
+						//德邦
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
+					}else if(vo.getExpressCompany()==5) {
+						//联邦
+						costAmount = sumProductCost.add(new BigDecimal(5.5));
+					} else {
+	                    costAmount = sumProductCost.add(new BigDecimal(5.5D)).add(vo.getCollectionAmout().multiply(new BigDecimal(0.015D))).add(new BigDecimal(9));
+	                }
+                }
 				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
 			}else if(warehouseVO.getBizRange()==2){
 				//男科
@@ -388,8 +395,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					} 
 				}
 			}else if(warehouseVO.getBizRange()==1){
-				//蜂蜜
-				if (new BigDecimal(0.19).compareTo(costRatio) < 0) {
+				
+				if ("005".equals(warehouseVO.getCode())) {
+                    if ((new BigDecimal(0.29)).compareTo(costRatio) < 0) {
+                        return false;
+                    }
+                } else if (new BigDecimal(0.19).compareTo(costRatio) < 0) {
+                	//蜂蜜
 					return false;
 				}
 			}
