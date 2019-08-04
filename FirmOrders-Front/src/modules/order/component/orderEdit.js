@@ -407,7 +407,7 @@ class Index extends React.Component {
                 }
             }
         }
-        let res = selectedRows.find(item => currentWareHouse && item.wareHouse != currentWareHouse);
+        let res = selectedRows.find(item => currentWareHouse  && item.wareHouse != currentWareHouse);
         if(res){
             if(!wareHouse){
                 Message.warning(`所选产品${res.name}的仓库,与已选中的其他产品仓库不匹配！`);
