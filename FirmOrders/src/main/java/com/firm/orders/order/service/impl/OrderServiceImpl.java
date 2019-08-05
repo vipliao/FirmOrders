@@ -95,6 +95,16 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if(null == vo.getChildrenDetail() || vo.getChildrenDetail().isEmpty()){
 			throw new Exception("订单中没有添加有关产品的数据!");
 		}
+		List<OrderProductVO> validChildren= new ArrayList<>();
+		for(OrderProductVO detail : vo.getChildrenDetail()){
+			if(3 != detail.getVoState()) {
+				validChildren.add(detail);
+			}
+		}
+		if(CollectionUtils.isEmpty(validChildren)) {
+			throw new Exception("订单中没有添加有关产品的数据!");
+		}
+		
 		if(vo.getDeliverDate() == null || vo.getDeliverDate().toString().equals("")){
 			throw new Exception("订单发货时间不能为空!");
 		}
@@ -259,15 +269,24 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if (null == vo.getChildrenDetail() || vo.getChildrenDetail().isEmpty()) {
 			throw new Exception("订单"+vo.getOrderCode()+"中没有添加有关产品的数据!");
 		}
+		List<OrderProductVO> validChildren= new ArrayList<>();
+		for(OrderProductVO detail : vo.getChildrenDetail()){
+			if(3 != detail.getVoState()) {
+				validChildren.add(detail);
+			}
+		}
+		if(CollectionUtils.isEmpty(validChildren)) {
+			throw new Exception("订单"+vo.getOrderCode()+"中没有添加有关产品的数据!");
+		}
 		BigDecimal costRatio = new BigDecimal(0.00);
 		BigDecimal sumProductCost = new BigDecimal(0.00);
-		List<String> productIdList = vo.getChildrenDetail().stream().map(OrderProductVO::getProductId).collect(Collectors.toList());
+		List<String> productIdList = validChildren.stream().map(OrderProductVO::getProductId).collect(Collectors.toList());
 		String productIdListStr = productIdList.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
 				.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
 		List<ProductVO> products = jdbcTemplate.query("select * from product_info where id in "+productIdListStr,new BeanPropertyRowMapper<ProductVO>(ProductVO.class));
 		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
 		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
-		for (OrderProductVO productVO : vo.getChildrenDetail()) {
+		for (OrderProductVO productVO : validChildren) {
 			if (productVO.getProductCostPrice() == null
 					|| productVO.getProductCostPrice().compareTo(new BigDecimal(0.00)) <= 0) {
 				List<ProductVO> newList = products.stream().filter(a -> a.getId().equals(productVO.getProductId())).distinct().collect(Collectors.toList());
@@ -525,23 +544,16 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		List<String> productIds= new ArrayList<>();
 		if(null != list && list.size()>0){
 			for(OrderProductVO vo:list){
-				
-				productIds.add(vo.getProductId());
 				if(vo.getProductBarCode() ==null && vo.getProductBarCode().equals("")){
 					throw new Exception("存在有产品条码/代码为空的数据！");
 				}
 				if(vo.getId()!=null && !vo.getId().equals("")){
 					delIds.add(vo.getId());	
-					if(vo.getVoState()!=3){
-						vo.setOrderId(mainTableKey);
-						addList.add(vo);
-					}
-				}else{
-					if(vo.getVoState()!=3){
-						vo.setOrderId(mainTableKey);
-						addList.add(vo);
-					}
-					
+				}
+				if(vo.getVoState()!=3){
+					vo.setOrderId(mainTableKey);
+					addList.add(vo);
+					productIds.add(vo.getProductId());
 				}
 				
 			}
