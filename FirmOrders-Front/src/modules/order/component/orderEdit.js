@@ -1062,7 +1062,7 @@ class Index extends React.Component {
                                             label="快递类别"
                                         >
                                             {getFieldDecorator('expressCompany', {
-                                                rules: [{required: true, message: '请输入快递公司'}],
+                                                rules: [{required: true, message: '请输入快递类别'}],
                                                 initialValue: data.expressCompany
                                             })(
                                                 <Select>
