@@ -1,6 +1,6 @@
 package com.firm.order.config.cors;
 
-import com.firm.order.utils.EncryptHelper;
+import com.firm.order.modules.base.encrypt.EncryptHelper;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;

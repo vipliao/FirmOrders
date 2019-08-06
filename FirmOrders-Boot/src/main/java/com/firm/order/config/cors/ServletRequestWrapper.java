@@ -2,7 +2,7 @@ package com.firm.order.config.cors;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.firm.order.utils.EncryptHelper;
+import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,10 +69,10 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
 
         if (StringUtils.isNotBlank(content)) {
             JSONObject deData2obj = JSONObject.parseObject(content);
-            if(deData2obj != null && deData2obj.containsKey("X-Auth-Token")){
+            if (deData2obj != null && deData2obj.containsKey("X-Auth-Token")) {
                 String token = deData2obj.get("X-Auth-Token").toString();
-                if(StringUtils.isNotBlank(token)){
-                    reflectSetparam(request,"X-Auth-Token",token);
+                if (StringUtils.isNotBlank(token)) {
+                    reflectSetparam(request, "X-Auth-Token", token);
                     content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
                 }
             }

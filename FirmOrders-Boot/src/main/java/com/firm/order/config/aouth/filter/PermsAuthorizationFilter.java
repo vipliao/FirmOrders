@@ -1,6 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
-import com.firm.order.utils.EncryptHelper;
+import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter;
 

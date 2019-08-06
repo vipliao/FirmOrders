@@ -1,6 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
-import com.firm.order.utils.EncryptHelper;
+import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -18,7 +18,6 @@ import java.io.PrintWriter;
 
 @Slf4j
 public class LoginAuthorizationFilter extends FormAuthenticationFilter{
-
     
 	/**
 	 * 用户登录校验失败回调方法，也可以自己重写校验方法isAccessAllowed

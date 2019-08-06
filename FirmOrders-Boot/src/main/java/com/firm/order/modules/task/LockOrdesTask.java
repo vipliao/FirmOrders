@@ -1,4 +1,4 @@
-package com.firm.order.modules.order.task;
+package com.firm.order.modules.task;
 
 import javax.transaction.Transactional;
 

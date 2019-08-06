@@ -3,12 +3,14 @@ package com.firm.order.config.context;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * 保存spring的ApplicationContext容器, 方便其他地方获取Bean
  * @author Administrator
  *
  */
+@Configuration
 public class SpringContextHolder implements ApplicationContextAware {
 
 	private static ApplicationContext applicationContext;

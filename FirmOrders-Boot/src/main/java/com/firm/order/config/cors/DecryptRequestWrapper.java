@@ -2,11 +2,12 @@ package com.firm.order.config.cors;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.firm.order.utils.EncryptHelper;
+import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.MimeHeaders;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 
 import javax.servlet.ReadListener;
@@ -24,7 +25,6 @@ import java.util.*;
  */
 @Slf4j
 public class DecryptRequestWrapper extends HttpServletRequestWrapper {
-
 
     private static final String APPLICATION_JSON = "application/json";
     /**
