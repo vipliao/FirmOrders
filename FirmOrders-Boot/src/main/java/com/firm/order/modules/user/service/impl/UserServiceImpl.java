@@ -12,6 +12,7 @@ import java.util.Map;
 import com.firm.order.utils.*;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.crypto.hash.Md5Hash;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	private JdbcTemplate jdbcTemplate;
 	@Autowired
 	private IAssessoryService assessoryService;
-	
-	
+
 	@Value("${encrypt.encodeRules}")
 	private String encodeRules;
 
@@ -90,15 +90,22 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 			throw new Exception("没有登录名信息");
 		}
 		if (password == null || password.equals("")) {
-			throw new Exception("没有登录password信息");
+			throw new Exception("没有登录密码信息");
 		}
 		UserVO user = queryUserByPhoneOrCode(loginName);
-		if(!password.trim().equals(SymmetricEncoder.AESDncode(encodeRules, user.getPassword().trim())) ){
+
+		if(!MD5Util.verify(password.trim(),user.getPassword().trim())){
+			//适配之前的密码加密形式
+			try{
+				if(password.trim().equals(SymmetricEncoder.AESDncode(encodeRules, user.getPassword().trim())) ){
+					return user;
+				}
+			}catch (Exception e){
+				throw new Exception("密码错误！");
+			}
+
 			throw new Exception("密码错误！");
 		}
-		/*if(!Md5Util.verify(password.trim(),user.getPassword().trim())){
-			throw new Exception("密码错误！");
-		}*/
 		return user;
 
 	}
@@ -248,10 +255,10 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 				vo1.setUserCode(ChineseToPinyinHelper.toLowerPinYin(vo1.getUserName())+"0"+count);
 			}
 			if(vo1.getPassword()==null || vo1.getPassword().equals("")){
-				vo1.setPassword(SymmetricEncoder.AESEncode(encodeRules, "000000"));
+				vo1.setPassword(MD5Util.saltMD5( "000000"));
 				//vo1.setPassword(Md5Util.generate("000000"));
 			}else{
-				vo1.setPassword(SymmetricEncoder.AESEncode(encodeRules, vo1.getPassword()));
+				vo1.setPassword(MD5Util.saltMD5(vo1.getPassword()));
 				//vo1.setPassword(Md5Util.generate(vo1.getPassword()));
 			}
 		}else{
@@ -419,7 +426,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	public String reSetPassWord(String phone) throws Exception {
 		checkUser(phone);
 		String defalutPwd="000000";
-		String defalutPwdenCode = SymmetricEncoder.AESEncode(encodeRules, "000000");
+		String defalutPwdenCode = MD5Util.saltMD5("000000");
 		String sql = "update user_info set password='"+defalutPwdenCode+"' where 1=1 and phone='"+phone+"'";
 		jdbcTemplate.update(sql);
 		return defalutPwd;
@@ -429,7 +436,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 	@Override
 	public void updatePassword(String phone,String password) throws Exception {
 		checkUser(phone);
-		String enPwd = SymmetricEncoder.AESEncode(encodeRules, password);
+		String enPwd = MD5Util.saltMD5(password);
 		String sql = "update user_info set password='"+enPwd+"' where 1=1 and phone='"+phone+"'";
 		jdbcTemplate.update(sql);
 	}

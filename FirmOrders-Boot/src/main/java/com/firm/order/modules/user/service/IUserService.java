@@ -16,7 +16,7 @@ public interface IUserService extends IBaseService<UserEntity,UserVO>{
 
 	LoginedUserVO login(String loginName,String password) throws Exception;
 	
-	public UserVO anth(String loginName,String password) throws Exception;
+	UserVO anth(String loginName,String password) throws Exception;
 
 	void deleteByPhone(String phone) throws Exception;
 
