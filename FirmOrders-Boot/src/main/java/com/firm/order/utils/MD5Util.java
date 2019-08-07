@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-public class Md5Util {
+public class MD5Util {
 
     /**
      * 普通MD5,只是实现下，不推荐使用，是不可逆的，但是聪明的人想到了查表，导致普通MD5的安全壁垒 GG 了；
@@ -29,7 +29,6 @@ public class Md5Util {
 
         byte[] md5Bytes = md5.digest(byteArray);
 
-        System.out.println( Base64.encodeBase64String(md5Bytes));
         StringBuffer hexValue = new StringBuffer();
         //将加密完的字符串，全部转成0-9、a-f的字符串
         for (int i = 0; i < md5Bytes.length; i++) {
@@ -53,7 +52,7 @@ public class Md5Util {
      * @author An
      * @time 2018年7月26日10:55:55
      */
-    public static String generate(String password) {
+    public static String saltMD5(String password) {
         //生成随机盐，长度12位
         byte[] bytes = new byte[12];
         SecureRandom random = new SecureRandom();
@@ -75,6 +74,7 @@ public class Md5Util {
 
         //最终的盐，长度是 12*2 = 24 ；
         String salt = builder.toString();
+        System.out.println("盐和盐长度：" + salt+","+salt.length());
         //先加盐Md5一把，再将 MD5 转换成 24位的 base64 位编码
         password = md5Hex(password + salt);
         char[] cs = new char[salt.length() + password.length()];
@@ -136,13 +136,13 @@ public class Md5Util {
         String plaintext = "621959";
         //  plaintext = "123456";
         System.out.println("原始：" + plaintext);
-        System.out.println("普通MD5后：" + Md5Util.MD5(plaintext));
+        System.out.println("普通MD5后：" + MD5Util.MD5(plaintext));
 
         // 获取加盐后的MD5值
-        String ciphertext = Md5Util.generate(plaintext);
+        String ciphertext = MD5Util.saltMD5(plaintext);
         System.out.println("加盐MD5字符串的长度"+ciphertext.length());
         System.out.println("加盐后MD5：" + ciphertext);
-        System.out.println("是否是同一字符串:" + Md5Util.verify(plaintext, ciphertext));
+        System.out.println("是否是同一字符串:" + MD5Util.verify(plaintext, ciphertext));
     }
 
 }

@@ -7,7 +7,6 @@ import com.firm.order.config.context.ApplicationProperties;
 import com.firm.order.utils.AesEncryptUtils;
 import com.firm.order.utils.RSAUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,19 +19,21 @@ public class EncryptHelper {
 
     /**
      * RSA+AES加密
+     *
      * @param data
      */
     public static String encrypt(Object data) {
-        return encrypt(data,applicationProperties.getClientPublickey());
+        return encrypt(data, applicationProperties.getClientPublickey());
     }
 
     /**
      * RSA+AES加密
+     *
      * @param data
      * @param clientPublicKey
      * @return
      */
-    public static String encrypt(Object data,String clientPublicKey) {
+    public static String encrypt(Object data, String clientPublicKey) {
         String metadataKey = AesEncryptUtils.keyGenerator();
         String metadataIv = AesEncryptUtils.ivGenerator();
         String enBody = null;
@@ -60,21 +61,23 @@ public class EncryptHelper {
 
     /**
      * RSA+AES解密
+     *
      * @param data
      * @return
      */
     public static String decrypt(String data) {
-        return decrypt(data,applicationProperties.getClientPublickey(),applicationProperties.getServerPrivatekey());
+        return decrypt(data, applicationProperties.getClientPublickey(), applicationProperties.getServerPrivatekey());
     }
 
     /**
      * RSA+AES解密
+     *
      * @param data
      * @param clientPublicKey
      * @param serverPrivateKey
      * @return
      */
-    public static String decrypt(String data,String clientPublicKey,String serverPrivateKey) {
+    public static String decrypt(String data, String clientPublicKey, String serverPrivateKey) {
         String realData = StringUtils.substringBeforeLast(data, "/");
         String signBiginPart = realData.substring(0, 9);
         String signSrcBeginPart = realData.substring(9, 17);
