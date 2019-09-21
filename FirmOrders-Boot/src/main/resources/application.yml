@@ -1,5 +1,5 @@
 server:
-    port: 8084
+    port: 8080
     servlet:
         context-path: /FirmOrders
 spring:
@@ -13,15 +13,15 @@ spring:
         maxWait: 60000
         minEvictableIdleTimeMillis: 300000
         minIdle: 5
-        password: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
         poolPreparedStatements: true
         testOnBorrow: false
         testOnReturn: false
         testWhileIdle: true
         timeBetweenEvictionRunsMillis: 60000
         type: com.alibaba.druid.pool.DruidDataSource
-        url: jdbc:mysql://47.92.82.33:3306/firm_orders_dev?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
-        username: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+        url: jdbc:mysql://127.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
+        username: 123456
+        password: 123456
         validationQuery: SELECT 1 FROM DUAL
     jpa:
         database: MYSQL

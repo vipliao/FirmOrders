@@ -1,6 +1,4 @@
 package com.firm.order.modules.order.service.impl;
-
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -17,25 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.firm.order.modules.base.entity.BaseEntity;
 import com.firm.order.modules.base.entity.SuperEntity;
 import com.firm.order.modules.base.service.impl.BaseServiceImpl;
@@ -47,27 +26,40 @@ import com.firm.order.modules.product.vo.ProductVO;
 import com.firm.order.modules.user.vo.UserVO;
 import com.firm.order.modules.warehouse.service.IWarehouseService;
 import com.firm.order.modules.warehouse.vo.WarehouseVO;
-import com.firm.order.utils.BeanHelper;
-import com.firm.order.utils.BillCodeGenerater;
-import com.firm.order.utils.EhCacheUtil;
-import com.firm.order.utils.JavaUuidGenerater;
-import com.firm.order.utils.PoiHelper;
-import com.firm.order.utils.PoiHelper.ExportDataObject;
+import com.firm.order.utils.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 
 
 
 @Service
-public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> implements IOrderService{
-	
+public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> implements IOrderService {
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
+
 	@Autowired
 	private IWarehouseService warehouseService;
-	
+
 	//@Autowired
 	//private ThreadPoolTaskExecutor taskExecutor;
-	
+
 	@Transactional
 	@Override
 	public OrderVO save(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception {
@@ -80,7 +72,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		List<OrderEntity> saveList = new ArrayList<>();
 		saveList.add(entity);
 		List<OrderEntity> newList = bathSave(saveList);
-		OrderVO reVO = handleSingleE2V(newList.get(0), OrderVO.class);		
+		OrderVO reVO = handleSingleE2V(newList.get(0), OrderVO.class);
 		/*List<OrderVO> list = new ArrayList<>();
 		list.add(reVO);
 		reVO = queryOrderProducts(list).get(0);*/
@@ -88,15 +80,25 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		return reVO;
 
 	}
-	
+
 	@Transactional
-	private OrderEntity bulidEntity(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception{
+	OrderEntity bulidEntity(OrderVO vo, Class<OrderEntity> clazzE, Class<OrderVO> clazzV) throws Exception{
 		if (vo == null) {
 			throw new Exception("没有数据!");
 		}
 		if(null == vo.getChildrenDetail() || vo.getChildrenDetail().isEmpty()){
 			throw new Exception("订单中没有添加有关产品的数据!");
 		}
+		List<OrderProductVO> validChildren= new ArrayList<>();
+		for(OrderProductVO detail : vo.getChildrenDetail()){
+			if(3 != detail.getVoState()) {
+				validChildren.add(detail);
+			}
+		}
+		if(CollectionUtils.isEmpty(validChildren)) {
+			throw new Exception("订单中没有添加有关产品的数据!");
+		}
+
 		if(vo.getDeliverDate() == null || vo.getDeliverDate().toString().equals("")){
 			throw new Exception("订单发货时间不能为空!");
 		}
@@ -115,7 +117,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				//当天时间过了10点,不能新增发货时间为今天的订单
 				String deliverDateStr = new SimpleDateFormat("yyMMdd").format(vo.getDeliverDate());
 				String today = new SimpleDateFormat("yyMMdd").format(new Date());
-				Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
+				Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 16:00:00");
 				if(today.equals(deliverDateStr) && new Date().getTime()>todayLockTime.getTime()){
 					throw new Exception("发货日期为今天的订单不处于业务员可操作的状态!");
 				}
@@ -123,9 +125,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					throw new Exception("发货日期为今天之前的订单不处于业务员可操作的状态!");
 				}
 			}
-			
+
 		}
-		
+
 		if(vo.getId()!=null){
 			if(vo.getOrderCode() == null || vo.getOrderCode().equals("")){
 				throw new Exception("订单编号不能为空!");
@@ -135,9 +137,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				throw new Exception("订单不处于业务员可操作的状态!");
 			}*/
 		}else{
-			
+
 			vo.setOrderCode(generaterBillCode(vo.getWarehouse(),vo.getDeliverDate()));
-			
+
 		}
 		vo.setCostRatio(calculateCostRatio(vo));
 		vo.setIsOverCost(isOverCost(vo)?0:1);
@@ -147,24 +149,24 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			((SuperEntity) entity).setId(JavaUuidGenerater.generateUuid());
 			((SuperEntity) entity).setCreateTime(new Timestamp(System.currentTimeMillis()));
 			((SuperEntity) entity).setUpdateTime(new Timestamp(System.currentTimeMillis()));
-			
+
 		}else{
 			OrderEntity e = findEntityById(entity.getId(), clazzE);
 			((SuperEntity) entity).setCreateTime(((SuperEntity) e).getCreateTime());
 			((SuperEntity) entity).setUpdateTime(new Timestamp(System.currentTimeMillis()));
-		
+
 		}
-		
+
 		return entity;
 	}
-	
+
 
 	@SuppressWarnings("unchecked")
 	public <T extends BaseEntity> List<T> bathSave(List<T> list) throws Exception{
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		
+
 		Map<String, Object> map = getFieldNames((Class<T>) list.get(0).getClass());
 		List<String> fieldNames = (ArrayList<String>) map.get("fieldNames");
 		List<String> dbFieldNames = (ArrayList<String>) map.get("dbFieldNames");
@@ -185,10 +187,10 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		jdbcTemplate.batchUpdate(sql.toString(), batchArgs);
 		return list;
-	 }
-	
-	
-	
+	}
+
+
+
 	private StringBuffer getJdbcInsertSql(List<String> dbFiledNames, String tableName) throws Exception {
 		StringBuffer sql = new StringBuffer();
 		StringBuffer sql1 = new StringBuffer("(");
@@ -216,14 +218,14 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		sql.append(")");*/
 		return sql.append(sql1);
 	}
-	
-	
-	
+
+
+
 	/*private void setAudits(SuperEntity entity,int type) throws Exception{
 		if (entity.getId() == null || entity.getId().equals("")) {
 			((SuperEntity) entity).setCreateTime(new Timestamp(System.currentTimeMillis()));
 			((SuperEntity) entity).setUpdateTime(new Timestamp(System.currentTimeMillis()));
-			
+
 		}else{
 			SuperEntity e  = null;
 			if(type==1){
@@ -241,7 +243,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				((SuperEntity) entity).setCreateTime(new Timestamp(System.currentTimeMillis()));
 			}
 			((SuperEntity) entity).setUpdateTime(new Timestamp(System.currentTimeMillis()));
-		
+
 		}
 	}
 	*/
@@ -253,7 +255,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		vo = queryOrderProducts(list).get(0);
 		return vo;
 	}
-	
+
 	public BigDecimal calculateCostRatio(OrderVO vo) throws Exception{
 		if (vo == null) {
 			throw new Exception("订单信息不能为空");
@@ -261,13 +263,24 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if (null == vo.getChildrenDetail() || vo.getChildrenDetail().isEmpty()) {
 			throw new Exception("订单"+vo.getOrderCode()+"中没有添加有关产品的数据!");
 		}
+		List<OrderProductVO> validChildren= new ArrayList<>();
+		for(OrderProductVO detail : vo.getChildrenDetail()){
+			if(3 != detail.getVoState()) {
+				validChildren.add(detail);
+			}
+		}
+		if(CollectionUtils.isEmpty(validChildren)) {
+			throw new Exception("订单"+vo.getOrderCode()+"中没有添加有关产品的数据!");
+		}
 		BigDecimal costRatio = new BigDecimal(0.00);
 		BigDecimal sumProductCost = new BigDecimal(0.00);
-		List<String> productIdList = vo.getChildrenDetail().stream().map(OrderProductVO::getProductId).collect(Collectors.toList());
+		List<String> productIdList = validChildren.stream().map(OrderProductVO::getProductId).collect(Collectors.toList());
 		String productIdListStr = productIdList.toString().replaceAll(" ", "").replaceAll("\\,", "\\'\\,\\'")
 				.replaceAll("\\[", "\\('").replaceAll("\\]", "\\')");
 		List<ProductVO> products = jdbcTemplate.query("select * from product_info where id in "+productIdListStr,new BeanPropertyRowMapper<ProductVO>(ProductVO.class));
-		for (OrderProductVO productVO : vo.getChildrenDetail()) {
+		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
+		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
+		for (OrderProductVO productVO : validChildren) {
 			if (productVO.getProductCostPrice() == null
 					|| productVO.getProductCostPrice().compareTo(new BigDecimal(0.00)) <= 0) {
 				List<ProductVO> newList = products.stream().filter(a -> a.getId().equals(productVO.getProductId())).distinct().collect(Collectors.toList());
@@ -283,14 +296,17 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				}else{
 					productVO.setProductCostPrice(price);
 				}
-				
+
 			}
 			if (productVO.getPnumber() == null || productVO.getPnumber().compareTo(new BigDecimal(0.00)) <= 0) {
 				throw new Exception("产品" + productVO.getProductName() + "数量不能为空！");
 			}
 			sumProductCost = sumProductCost.add(productVO.getPnumber().multiply(productVO.getProductCostPrice()));
+			if (warehouseVO != null && "005".equals(warehouseVO.getCode())) {
+				sumProductCost = sumProductCost.add(productVO.getPnumber().multiply(new BigDecimal(18)));
+			}
 		}
-		
+
 		if (vo.getCollectionAmout() == null || vo.getCollectionAmout().compareTo(new BigDecimal(0.00)) <= 0) {
 			vo.setCollectionAmout(new BigDecimal(0.00));
 		}
@@ -299,74 +315,78 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		vo.setTotalAmount(vo.getDepositAmout().add(vo.getCollectionAmout()));
 		BigDecimal costAmount =new BigDecimal(0.00);
-		
-		//根据仓库业务范围区分是男科还是蜂蜜，//暂时注释
-		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
+
+
 		if(warehouseVO != null){
 			if(warehouseVO.getBizRange()==1){
 				//蜂蜜
-				
-				 /* ==========================广西仓库=======================================
+
+				/* ==========================广西仓库=======================================
 				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费/打包费
 				 *  		+手续费（每个订单代收金额*百分比）+邮费/运费
 				 *  成本比例=仓库成本费用/订单总金额
 				 * ==========================================================================
 				 */
-				
-				if (vo.getExpressCompany()==0){
-					//顺丰
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
-				}if (vo.getExpressCompany()==1){
-					//邮政
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))));
-				}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
-					//中通或圆通
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(9)));
-				}else if(vo.getExpressCompany()==4){
-					//德邦
-					costAmount = (sumProductCost.add(new BigDecimal(5.5))
-							.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
-				}else if(vo.getExpressCompany()==5) {
-					//联邦
-					costAmount = sumProductCost.add(new BigDecimal(5.5));
+				if ("005".equals(warehouseVO.getCode())) {
+					costAmount = sumProductCost.add(new BigDecimal(3)).add(vo.getCollectionAmout().multiply(new BigDecimal(0.02)));
+				} else {
+					if (vo.getExpressCompany()==0){
+						//顺丰
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.05))));
+					}if (vo.getExpressCompany()==1){
+						//邮政
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))));
+					}else if(vo.getExpressCompany()==2 || vo.getExpressCompany()==3){
+						//中通或圆通
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(9)));
+					}else if(vo.getExpressCompany()==4){
+						//德邦
+						costAmount = (sumProductCost.add(new BigDecimal(5.5))
+								.add(vo.getCollectionAmout().multiply(new BigDecimal(0.015))).add(new BigDecimal(40)));
+					}else if(vo.getExpressCompany()==5) {
+						//联邦
+						costAmount = sumProductCost.add(new BigDecimal(5.5));
+					} else {
+						costAmount = sumProductCost.add(new BigDecimal(5.5D)).add(vo.getCollectionAmout().multiply(new BigDecimal(0.015D))).add(new BigDecimal(9));
+					}
 				}
 				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
 			}else if(warehouseVO.getBizRange()==2){
 				//男科
-				
-				 /* ==========================武汉仓库=======================================
+
+				/* ==========================武汉仓库=======================================
 				 *  成本费用=货物费（订单中产品的sum（产品成本价格*数量））+服务费（每个订单3元）
 				 *  		+手续费（每个订单代收金额2.5%）+邮费（每个订单50）
 				 *	成本比例=武汉仓库成本费用/订单总金额
 				 * ==========================================================================
 				 */
-				 
+
 				costAmount = (sumProductCost.add(new BigDecimal(3))
 						.add(vo.getCollectionAmout().multiply(new BigDecimal(0.025))).add(new BigDecimal(50)));
 				vo.setCostAmount(costAmount.setScale(2, BigDecimal.ROUND_HALF_EVEN));
 			}
-			
+
 			if (vo.getTotalAmount() == null || vo.getTotalAmount().compareTo(new BigDecimal(0.00)) <= 0) {
 				vo.setTotalAmount(new BigDecimal(0.00));
 				costRatio = new BigDecimal(1.00);
 			} else {
-				costRatio = costAmount.divide(vo.getTotalAmount(),4,BigDecimal.ROUND_HALF_EVEN);	
+				costRatio = costAmount.divide(vo.getTotalAmount(),4,BigDecimal.ROUND_HALF_EVEN);
 			}
 		}else{
 			throw new Exception("仓库数据输入有误！");
 		}
 		return costRatio;
 	}
-	
+
 	private boolean isOverCost(OrderVO vo) throws Exception{
 		if (vo.getOrderNature() == null || vo.getOrderNature().equals("")) {
 			throw new Exception("订单性质不能为空！");
 		}
 		BigDecimal costRatio = calculateCostRatio(vo);
-		
+
 		//根据仓库业务范围区分是男科还是蜂蜜，暂时注释
 		WarehouseVO warehouseVO = warehouseService.findVOByCode(vo.getWarehouse());
 		if(warehouseVO != null){
@@ -376,8 +396,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				 * 武汉仓库成本超过：订单性质为热线 、回访且成本比例小于16%，则不超；订单性质为复购且成本比例小于18% ，则不超
 				 * 北京仓库成本超过：对于业务员订单性质为热线 、回访且成本比例小于24%则不超 ；订单性质为复购且成本比例小于26%则不超
 				 * ===============================================================================
-				*/ 
-				
+				 */
+
 				if ("热线".equals(vo.getOrderNature()) || "回访".equals(vo.getOrderNature())) {
 					if (new BigDecimal(0.16).compareTo(costRatio) < 0) {
 						return false;
@@ -385,11 +405,16 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				} else  {
 					if (new BigDecimal(0.18).compareTo(costRatio) < 0) {
 						return false;
-					} 
+					}
 				}
 			}else if(warehouseVO.getBizRange()==1){
-				//蜂蜜
-				if (new BigDecimal(0.19).compareTo(costRatio) < 0) {
+
+				if ("005".equals(warehouseVO.getCode())) {
+					if ((new BigDecimal(0.29)).compareTo(costRatio) < 0) {
+						return false;
+					}
+				} else if (new BigDecimal(0.19).compareTo(costRatio) < 0) {
+					//蜂蜜
 					return false;
 				}
 			}
@@ -397,7 +422,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 
 		return true;
 	}
-	
+
 	@Override
 	@Transactional
 	public void delete(String id) throws Exception {
@@ -409,7 +434,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		String mainDelSql = "delete from order_info where id = '" + id + "'";
 		jdbcTemplate.batchUpdate(detailDelSql,mainDelSql);
 	}
-	
+
 	private boolean isSalesManCando(String orderId) throws Exception{
 		OrderVO dbvo = findVOById(orderId, OrderVO.class);
 		if(null !=dbvo){
@@ -424,13 +449,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						return false;
 					}
 				}else if(todayInt > deliverDateInt){//发货时间今天之前
-					return false;	
+					return false;
 				}
 			}
 		}
 		return true;
 	}
-	
+
 	private String generaterBillCode(String warehouse,Date deliverDate) throws Exception{
 		String prefix = "D";
 		int digits = 4;
@@ -441,7 +466,19 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			prefix = "S7001";
 			digits=4;
 		}
-	
+		/*
+		 * String deliverDateStr = new SimpleDateFormat("yyMMdd").format(deliverDate);
+		 * String sql =
+		 * "select max(order_code) from order_info where order_code like '"+prefix+
+		 * deliverDateStr+"%'"; List<String> list =
+		 * jdbcTemplate.queryForList(sql,String.class); if(list!=null &&
+		 * !list.isEmpty()){ return
+		 * BillCodeGenerater.generaterBillCode(prefix,deliverDate,
+		 * "yyMMdd",digits,list.get(0)); }else{ return
+		 * BillCodeGenerater.generaterBillCode(prefix,deliverDate,
+		 * "yyMMdd",digits,null); }
+		 */
+
 		String orderCode =null;
 		String deliverDateStr = FastDateFormat.getInstance("yyMMdd").format(deliverDate);
 		String currentorderCode = (String) EhCacheUtil.getInstance().get("orderCodeCache", prefix+deliverDateStr);
@@ -459,7 +496,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		EhCacheUtil.getInstance().put("orderCodeCache", prefix+deliverDateStr, orderCode);
 		return orderCode;
 	}
-	
+
 	private List<OrderVO> queryOrderProducts(List<OrderVO> orders) throws Exception {
 		if (orders == null || orders.size() <= 0) {
 			return null;
@@ -482,13 +519,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				}
 				b.setChildrenDetail(a);
 			}
-			
+
 		}
 		return orders;
 	}
-	 
+
 	@Transactional
-	private List<OrderProductVO> saveOrderProduct(String mainTableKey,String wareHouse,List<OrderProductVO> list) throws Exception{
+	List<OrderProductVO> saveOrderProduct(String mainTableKey, String wareHouse, List<OrderProductVO> list) throws Exception{
 		if(null == mainTableKey || mainTableKey.equals("")){
 			throw new Exception("主表主键不能为空！");
 		}
@@ -501,25 +538,18 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		List<String> productIds= new ArrayList<>();
 		if(null != list && list.size()>0){
 			for(OrderProductVO vo:list){
-				
-				productIds.add(vo.getProductId());
 				if(vo.getProductBarCode() ==null && vo.getProductBarCode().equals("")){
 					throw new Exception("存在有产品条码/代码为空的数据！");
 				}
 				if(vo.getId()!=null && !vo.getId().equals("")){
-					delIds.add(vo.getId());	
-					if(vo.getVoState()!=3){
-						vo.setOrderId(mainTableKey);
-						addList.add(vo);
-					}
-				}else{
-					if(vo.getVoState()!=3){
-						vo.setOrderId(mainTableKey);
-						addList.add(vo);
-					}
-					
+					delIds.add(vo.getId());
 				}
-				
+				if(vo.getVoState()!=3){
+					vo.setOrderId(mainTableKey);
+					addList.add(vo);
+					productIds.add(vo.getProductId());
+				}
+
 			}
 			List<ProductVO> productList = new ArrayList<>();
 			if(productIds !=null && productIds.size()>0){
@@ -544,8 +574,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							throw new Exception("所选存在产品不属于订单所属仓库,订单所属仓库为"+wareHouseName);
 						}
 					}
-					
-					
+
+
 				}
 			}
 			if(delIds!=null && delIds.size()>0){
@@ -554,7 +584,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				String delLSql = "delete from order_product where id in "+delIdsList;
 				sqls.add(delLSql);
 			}
-			
+
 			if(addList!=null && addList.size()>0){
 				for(OrderProductVO vo:addList){
 					for(ProductVO product:productList){
@@ -569,12 +599,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						vo.setId(id);
 						vo.setCreateTime(new Timestamp(System.currentTimeMillis()));
 					}else{
-						
+
 						List<Date>  createTime= jdbcTemplate.queryForList("select create_time  from order_product where id ='"+vo.getId()+"'", Date.class);
 						vo.setCreateTime(createTime.get(0));
 					}
 					vo.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-					
+
 					StringBuffer sql = new StringBuffer("insert into order_product"
 							+ " (id,create_time,update_time,memo,product_id,product_name,pnumber,product_unit,product_bar_code,product_cost_price,order_id,product_warehouse)"
 							+ " values ");
@@ -584,7 +614,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						sql.append("'"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(vo.getCreateTime())+"',");
 					}else{
 						sql.append("#"+null+"#,");
-					}					
+					}
 					sql.append("'"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(vo.getUpdateTime())+"',");
 					if(null != vo.getMemo()){
 						sql.append("'"+vo.getMemo()+"',");
@@ -629,14 +659,14 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					}
 					sql.append(")");
 					sqls.add(sql.toString().replace("#", ""));
-					
+
 				}
 			}
-			
+
 			jdbcTemplate.batchUpdate(sqls.toArray(new String[sqls.size()]));
 		}
 		return addList;
-		
+
 	}
 
 	@Override
@@ -660,32 +690,32 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					warehouseVO.getName();
 				}
 			}
-			
+
 			queryOrderProducts(list);
-			return new PageImpl<OrderVO>(list, pageable != null?pageable: PageRequest.of(0,list.size()), pageable != null ? total : (long) list.size());
+			return new PageImpl<OrderVO>(list, pageable, pageable != null ? total : (long) list.size());
 		}
 		return null;
-		
+
 	}
-	
+
 	private UserVO getCurrentUser() throws Exception{
 		//当前用户
 		Subject subject = SecurityUtils.getSubject();
 		UserVO user = (UserVO) subject.getSession().getAttribute("currentUser");
 		return user;
 	}
-	
+
 	@Override
 	public Page<OrderVO> queryWaitEnsureList(Pageable pageable, Map<String, Object> map) throws Exception{
 		map.put("optionType", 1);
-		return queryList(pageable, map); 
+		return queryList(pageable, map);
 	}
-	
-	
+
+
 	private int getTotalCount(String sql) {
-	      String totalSql = "select count(1) from (" + sql + ") t";
-	      Integer total = (Integer)this.jdbcTemplate.queryForObject(totalSql, Integer.class);
-	      return total.intValue();
+		String totalSql = "select count(1) from (" + sql + ") t";
+		Integer total = (Integer)this.jdbcTemplate.queryForObject(totalSql, Integer.class);
+		return total.intValue();
 	}
 
 	@Override
@@ -735,7 +765,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					if(map.get("orderCode").equals(db.getOrderCode()) && map.get("receiverName").toString().trim().equals(db.getReceiverName().trim())){
 						//赋值订单主表数据
 						if(!set.contains(db.getOrderCode()+"-"+db.getReceiverName())){
-							
+
 							if(map.get("expressCode") !=null && !map.get("expressCode").equals("")){
 								db.setExpressCode(map.get("expressCode").toString());
 							}
@@ -775,7 +805,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							if(map.get("collectionAmout") !=null && !map.get("collectionAmout").equals("")){
 								db.setCollectionAmout(new BigDecimal(map.get("collectionAmout").toString()));
 							}
-							
+
 							db.setExpressState(1);// 已发货
 							db.setOrderState(2);// 已发快递
 						}
@@ -791,7 +821,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							Map.Entry<String, Object> entry = (Map.Entry<String, Object>) it.next();
 							if (entry.getKey().indexOf("productBarCode") != -1) {
 								barCodes.add(entry.getKey());
-								
+
 							}
 						}
 						for (OrderProductVO child : pList) {
@@ -811,7 +841,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 												+"  and product_bar_code='"+child.getProductBarCode()+"'";
 										saveSqls.add(saveSql);
 									}
-									
+
 								}
 							} else if (warehouse == 1) {
 								// 北京
@@ -823,8 +853,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 											+"  and product_bar_code='"+child.getProductBarCode()+"'";
 									saveSqls.add(saveSql);
 								}
-								
-								
+
+
 							}*/
 							if(child.getProductBarCode().trim() != null && child.getProductBarCode().trim().equals(map.get("productBarCode").toString().trim())){
 								child.setPnumber(new BigDecimal(map.get("pnumber").toString()));
@@ -836,7 +866,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 							}
 
 						}
-						
+
 						db.setCostRatio( calculateCostRatio(db));
 						db.setIsOverCost(isOverCost(db)?0:1);
 						//if(db.getExpressCode() != null && !db.getExpressCode().equals("")){
@@ -885,7 +915,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						}
 						saveSql.append(",is_over_cost="+db.getIsOverCost());
 						saveSql.append(" where id='"+db.getId()+"'");
-						saveSqls.add(saveSql.toString());	
+						saveSqls.add(saveSql.toString());
 							/*String saveSql = "update order_info set"
 									+ " express_state ="+db.getExpressState()
 									+" ,order_state="+db.getOrderState()
@@ -903,23 +933,23 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 									+",cost_ratio='"+db.getCostRatio()+"'"
 									+",is_over_cost="+db.getIsOverCost()
 									+" where id='"+db.getId()+"'";
-									saveSqls.add(saveSql);			*/		
+									saveSqls.add(saveSql);			*/
 						//}
 						set.add(db.getOrderCode()+"-"+db.getReceiverName());
 					}
 				}
-				
-				
+
+
 			}
 			if(saveSqls == null || saveSqls.isEmpty()){
 				return;
 			}
 			jdbcTemplate.batchUpdate(saveSqls.toArray(new String[saveSqls.size()]));
 		}
-		
+
 
 	}
-	
+
 	@Override
 	@Transactional
 	public void importOrderExpressExcel(MultipartFile file) throws Exception {
@@ -939,7 +969,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 			if ((!map.containsKey("expressCode") || map.get("expressCode") == null || map.get("expressCode").equals(""))
 					&& (!map.containsKey("expressState") || map.get("expressState") == null
-							|| map.get("expressState").equals(""))) {
+					|| map.get("expressState").equals(""))) {
 				continue;
 			}
 			StringBuffer sql = new StringBuffer("update order_info set");
@@ -949,7 +979,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				}else{
 					sql.append(" express_code = '"+map.get("expressCode")+"'");
 				}
-				
+
 			}
 			if(map.containsKey("expressState") && map.get("expressState") != null && !map.get("expressState").equals("")){
 				String expressStatestr =  (String) map.get("expressState");
@@ -970,20 +1000,20 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					sql.append(" express_state = 5,");
 					sql.append(" order_state = 3");
 				}
-				
+
 			}
 			sql.append(" where order_code='"+map.get("orderCode")+"'");
 			saveSqls.add(sql.toString());
 		}
-				
+
 		if (saveSqls == null || saveSqls.isEmpty()) {
 			return;
 		}
 		jdbcTemplate.batchUpdate(saveSqls.toArray(new String[saveSqls.size()]));
-		
-		
+
+
 	}
-	
+
 	public ResponseEntity<byte[]> exportOrderExcel(Map<String,Object> map) throws Exception{
 
 		//查询数据
@@ -1010,7 +1040,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}else if(order.getOrderState()==3){
 				orderMap.put("orderSate", "成单");
 			}
-		
+
 			if(order.getIsForeignExpress()==0){
 				orderMap.put("isForeignExpress", "否");
 			}else{
@@ -1022,7 +1052,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				orderMap.put("isOverCost", "是");
 			}
 			if(order.getExpressCompany()==0){
-				orderMap.put("expressCompany", "顺丰");	
+				orderMap.put("expressCompany", "顺丰");
 			}else if(order.getExpressCompany()==1){
 				orderMap.put("expressCompany", "邮政");
 			}else if(order.getExpressCompany()==2){
@@ -1058,12 +1088,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			 * "KD[EMS快递包裹]"); } } if(order.getCollectionAmout().intValue()==0){
 			 * orderMap.put("payTime", order.getCreateTime()); if(order.getOrderState()<2){
 			 * orderMap.remove("orderSate"); orderMap.put("orderSate", "买家已付款，等待卖家发货"); }
-			 * 
+			 *
 			 * }else if (order.getCollectionAmout().intValue()!=0){
 			 * if(order.getOrderState()<2){ orderMap.remove("orderSate");
 			 * orderMap.put("orderSate", "货到付款"); } } }
 			 */
-			
+
 			List<OrderProductVO>  details = order.getChildrenDetail();
 			if(details != null && details.size()>0){
 				for(int i=0 ;i<details.size();i++){
@@ -1088,7 +1118,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						newOrderMap.put("productTotalAmount",details.get(i).getProductCostPrice().multiply(pnumber));
 						beijingOrders.add(newOrderMap);
 					}*/
-					
+
 					Map<String,Object> newOrderMap =new HashMap<>();
 					newOrderMap.putAll(orderMap);
 					if(warehouses!=null){
@@ -1119,66 +1149,66 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					newOrderMap.put("productTotalPrice",details.get(i).getProductCostPrice().multiply(pnumber));
 					newOrderMap.put("productTotalAmount",details.get(i).getProductCostPrice().multiply(pnumber));
 					orders.add(newOrderMap);
-					
+
 				}
 				/*if((int)orderMap.get("warehouse")==0){
 					orderMap.put("warehouse", "武汉");
 					wuhanOrders.add(orderMap);
 				}*/
-				
-				
+
+
 			}
-			
+
 		}
-		
+
 		String deliverDateStr="";
 		String deliverBeginDateStr = "";
 		String deliverEndDateStr ="";
-		
+
 		if(map !=null){
 			if(map.containsKey("deliverBeginDate") ){
-			
+
 				if(map.get("deliverBeginDate") instanceof  Date){
 					deliverBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format((Date) map.get("deliverBeginDate"));
 				}else if(map.get("deliverBeginDate") instanceof  String){
 					deliverBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse((String)map.get("deliverBeginDate")));
 				}
-				
-				
+
+
 			}
 			if(map.containsKey("deliverEndDate")){
-				
+
 				if(map.get("deliverEndDate") instanceof  Date){
 					deliverEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format((Date) map.get("deliverEndDate"));
 				}else if(map.get("deliverEndDate") instanceof  String){
 					deliverEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse((String)map.get("deliverEndDate")));
 				}
-				
+
 			}
 			if (map.containsKey("deliverDate")) {
-				
+
 				if(map.get("deliverDate") instanceof  Date){
 					deliverDateStr = new SimpleDateFormat("yyyy-MM-dd").format((Date) map.get("deliverDate"));
 				}else if(map.get("deliverDate") instanceof  String){
 					deliverDateStr = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse((String)map.get("deliverDate")));
 				}
-			
+
 
 			}
-			
+
 			if(deliverBeginDateStr != null && !deliverBeginDateStr.equals("") && (deliverEndDateStr==null || deliverEndDateStr.equals(""))){
 				deliverDateStr = deliverBeginDateStr+"之后";
 			}
 			if((deliverBeginDateStr == null || deliverBeginDateStr.equals("") )&& (deliverEndDateStr!=null && !deliverEndDateStr.equals(""))){
 				deliverDateStr = deliverEndDateStr+"之前";
-			} 
+			}
 			if((deliverBeginDateStr != null && !deliverBeginDateStr.equals("")) && (deliverEndDateStr!=null && !deliverEndDateStr.equals(""))){
 				if(deliverBeginDateStr.equals(deliverEndDateStr)) {
 					deliverDateStr =deliverBeginDateStr;
 				}else {
 					deliverDateStr =deliverBeginDateStr+"到"+deliverEndDateStr;
 				}
-				
+
 			}
 		}
 		if(deliverDateStr == null || deliverDateStr.equals("")){
@@ -1219,7 +1249,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			wuhanExport.setStartRow(2);
 			wuhanExport.setExportData(wuhanOrders);
 			exportList.add(wuhanExport);
-			
+
 			PoiHelper.ExportDataObject beijingExport = new PoiHelper().new ExportDataObject();
 			beijingExport.setSheetName("北京-52部");
 			beijingExport.setSheetNumber(2);
@@ -1232,19 +1262,19 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			exportFileName = deliverDateStr+"订单发货表.xlsx";
 			//武汉和北京的订单数据
 			PoiHelper.ExportDataObject export = new PoiHelper().new ExportDataObject();
-			
+
 			export.setSheetNumber(1);
 			export.setStartRow(2);
 			export.setExportData(orders);
 			exportList.add(export);
-			
-			
+
+
 		}
 		return PoiHelper.exportExcel(templateName,exportFileName,exportList);
 	}
-	
-	
-	
+
+
+
 	private  StringBuilder queryList(Map<String,Object> map) throws Exception{
 		StringBuilder sql = new StringBuilder();
 		if(!map.containsKey("outAttributeNames")){
@@ -1255,7 +1285,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		UserVO userVO = getCurrentUser();
 		//String roleCode = getCurrentUserRoleCode();
-		/*String roleCode = "001";*/		
+		/*String roleCode = "001";*/
 		if (map != null) {
 			if (map.containsKey("optionType")) {
 				int optionType = (int) map.get("optionType");
@@ -1264,13 +1294,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				}else if(map.get("optionType") instanceof  String){
 					optionType = Integer.parseInt((String) map.get("optionType"));
 				}else{
-					throw new Exception("参数optionType数据类型不正确!");	
+					throw new Exception("参数optionType数据类型不正确!");
 				}
-			
+
 				/*if (optionType == 1 && !"004".equals(roleCode)) {*/
 				if(userVO != null && userVO.getRoleLevel()<=3){
 					// 管理员或二级管理员或3级管理员当天10点以后确认当天订单
-					sql.append(" and date(deliver_date) =curdate()");	
+					sql.append(" and date(deliver_date) =curdate()");
 				}
 			}
 			if (map.containsKey("keyWords")) {
@@ -1297,7 +1327,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					if(orderDateStr != null && !orderDateStr.equals("")){
 						orderDate = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse(orderDateStr));
 					}else{
-						throw new Exception("参数orderDate传入的是空值!");		
+						throw new Exception("参数orderDate传入的是空值!");
 					}
 				}
 				if(orderDate !=null){
@@ -1314,8 +1344,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					if(deliverBeginDateStr !=null && !deliverBeginDateStr.equals("")){
 						deliverBeginDate = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse(deliverBeginDateStr));
 					}else{
-						throw new Exception("参数deliverBeginDate传入的是空值!");		
-					}	
+						throw new Exception("参数deliverBeginDate传入的是空值!");
+					}
 				}
 				if(deliverBeginDate != null){
 					sql.append(" and deliver_date >= '"+deliverBeginDate+"'");
@@ -1331,7 +1361,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					if(deliverEndDateStr !=null && !deliverEndDateStr.equals("")){
 						deliverEndDate = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse(deliverEndDateStr));
 					}else{
-						throw new Exception("参数deliverEndDate传入的是空值!");		
+						throw new Exception("参数deliverEndDate传入的是空值!");
 					}
 				}
 				if(deliverEndDate !=null){
@@ -1346,8 +1376,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					String deliverDateStr = (String)map.get("deliverDate");
 					if(deliverDateStr != null && !deliverDateStr.equals("")){
 						deliverDate = new SimpleDateFormat("yyyy-MM-dd").format(new SimpleDateFormat("yyyy-MM-dd").parse(deliverDateStr));
-					}else {	
-						throw new Exception("参数deliverDate传入的是空值!");					
+					}else {
+						throw new Exception("参数deliverDate传入的是空值!");
 					}
 				}
 				if(deliverDate !=null){
@@ -1364,9 +1394,9 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					warehouse =  Integer.parseInt((String)map.get("warehouse"));
 					sql.append(" and warehouse=" + warehouse);
 				}else{
-					throw new Exception("参数warehouse数据类型不正确!");	
+					throw new Exception("参数warehouse数据类型不正确!");
 				}
-				
+
 			}
 			if (map.containsKey("orderState")) {
 				int orderState=0;
@@ -1377,24 +1407,24 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					orderState =  Integer.parseInt((String)map.get("orderState"));
 					sql.append(" and order_state=" + orderState);
 				}else{
-					throw new Exception("参数orderState数据类型不正确!");	
+					throw new Exception("参数orderState数据类型不正确!");
 				}
-				
+
 
 			}
 			if (map.containsKey("isOverCost")) {
 				int isOverCost  =0;
 				if( map.get("isOverCost") instanceof Integer){
 					isOverCost =  (int)map.get("isOverCost");
-					sql.append(" and is_over_cost=" + isOverCost); 
+					sql.append(" and is_over_cost=" + isOverCost);
 				}else if( map.get("isOverCost") instanceof String){
 					isOverCost =  Integer.parseInt((String)map.get("isOverCost"));
-					sql.append(" and is_over_cost=" + isOverCost); 
+					sql.append(" and is_over_cost=" + isOverCost);
 				}else{
-					throw new Exception("参数isOverCost数据类型不正确!");	
+					throw new Exception("参数isOverCost数据类型不正确!");
 				}
-				
-				
+
+
 			}
 			if (map.containsKey("expressState")) {
 				int expressState=0;
@@ -1403,18 +1433,18 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					sql.append(" and express_state=" + expressState);
 				}else if( map.get("expressState") instanceof String){
 					expressState =  Integer.parseInt((String)map.get("expressState"));
-					sql.append(" and express_state=" + expressState); 
+					sql.append(" and express_state=" + expressState);
 				}else{
-					throw new Exception("参数expressState数据类型不正确!");	
+					throw new Exception("参数expressState数据类型不正确!");
 				}
-				
-				
+
+
 			}
-			
+
 		}
 		if(userVO != null){
 			if(userVO.getRoleLevel()==4){
-				
+
 				String userId = (String) ((UserVO) SecurityUtils.getSubject().getSession().getAttribute("currentUser"))
 						.getId();
 				sql.append(" and user_id = '" + userId + "'");
@@ -1433,10 +1463,10 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				sql.append(" and region like '"+userVO.getRegion().trim()+"%'");
 			}
 		}
-		
+
 		return sql;
 	}
-	
+
 	private String getOrderBySQL(String orderby){
 		/*String orderby = " order by deliver_date desc,region asc,warehouse desc,express_company asc,is_foreign_express asc";*/
 		if(orderby == null || orderby.equals("")){
@@ -1449,23 +1479,23 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	public ResponseEntity<byte[]> exportTemplateExcel(int type) throws Exception {
 		String templateName=null;
 		switch (type) {
-		case 0:
-			templateName ="S91平台发货表模板.xls";
-			break;
-		case 1:
-			templateName ="52部发货表模板.xls";
-			break;
-		case 2:
-			templateName ="订单快递状态更新模板.xlsx";
-			break;
-		default:
-			templateName ="订单快递状态更新模板.xlsx";
-			break;
+			case 0:
+				templateName ="S91平台发货表模板.xls";
+				break;
+			case 1:
+				templateName ="52部发货表模板.xls";
+				break;
+			case 2:
+				templateName ="订单快递状态更新模板.xlsx";
+				break;
+			default:
+				templateName ="订单快递状态更新模板.xlsx";
+				break;
 		}
-		
+
 		return PoiHelper.exportTemplateExcel(templateName);
 	}
-	
+
 	@Override
 	public List<Map<String,Object>> multiPurchaseOrder(Map<String, Object> map) throws Exception {
 		if(!map.containsKey("orderNature")|| map.get("orderNature")==null || map.get("orderNature").equals("")){
@@ -1484,7 +1514,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}else if(map.get("deliverMonth") instanceof  String){
 				deliverMonth =new SimpleDateFormat("yyyy-MM").parse((String)map.get("deliverMonth"));
 			}
-			
+
 		}
 		if(deliverMonth !=null){
 			Date deliverBeginDate = DateHelper.getFirstDayOfMonth(deliverMonth);
@@ -1555,8 +1585,8 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				break;
 			}
 		}
-		List<ExportDataObject> exportData = new ArrayList<>();
-		ExportDataObject dataObj = new PoiHelper().new ExportDataObject();
+		List<PoiHelper.ExportDataObject> exportData = new ArrayList<>();
+		PoiHelper.ExportDataObject dataObj = new PoiHelper().new ExportDataObject();
 		dataObj.setExportData(exportDataList);
 		dataObj.setSheetName("sheet1");
 		dataObj.setSheetNumber(1);
@@ -1564,7 +1594,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		exportData.add(dataObj);
 		return PoiHelper.exportExcel(templateName, exportFileName, exportData);
 	}
-	
+
 	/**
 	 * 查询一段时间订单数据
 	 * @param map
@@ -1578,7 +1608,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if (!map.containsKey("deliverEndDate") || map.get("deliverEndDate") == null) {
 			throw new Exception("发货结束时间不能为空！");
 		}
-		
+
 		String outAttributeNames = " region,order_nature,count(id) order_state,sum(deposit_amout) deposit_amout,express_state,"
 				+ " sum(collection_amout) collection_amout,sum(total_amount) total_amount,sum(cost_amount) cost_amount ";
 		map.put("outAttributeNames", outAttributeNames);
@@ -1593,7 +1623,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		return list;
 	}
-	
+
 	/**
 	 * 重新整理各区域订单数据
 	 * @param list
@@ -1602,7 +1632,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	 * @throws Exception
 	 */
 	private List<Map<String, Object>> RecombinRegionOrdersData(List<OrderVO> list,List<Map<String, Object>> exportDataList) throws Exception {
-	
+
 		/// 按区域分组
 		Map<String, Object> data2 = new HashMap<>();
 		data2.put("region", "总计");
@@ -1758,7 +1788,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 
 		return exportDataList;
 	}
-	
+
 	@Override
 	public List<Map<String, Object>> regionOrder (Map<String, Object> map) throws Exception{
 		List<OrderVO> list = queryregionOrdersDatas(map);
@@ -1772,7 +1802,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 
 	@Override
 	public ResponseEntity<byte[]> exportRegionOrder(Map<String, Object> map) throws Exception {
-		
+
 		List<OrderVO> list = queryregionOrdersDatas(map);
 		if(list == null || list.isEmpty()){
 			throw new Exception("没有数据!");
@@ -1835,12 +1865,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			mergedCellMap.put("firstCol", 1);
 			mergedCellMap.put("lastCol", 1);
 			mergedCellList.add(mergedCellMap);
-			
+
 		}
 		String templateName = "时间段内各区域订单数据模板.xlsx";
 		String exportFileName = deliverBeginDate + "-" + deliverEndDate + "的订单数据.xlsx";
-		List<ExportDataObject> exportData = new ArrayList<>();
-		ExportDataObject dataObj = new PoiHelper().new ExportDataObject();
+		List<PoiHelper.ExportDataObject> exportData = new ArrayList<>();
+		PoiHelper.ExportDataObject dataObj = new PoiHelper().new ExportDataObject();
 		dataObj.setExportData(exportDataList);
 		dataObj.setExportmergedCells(mergedCellList);
 		dataObj.setSheetName("sheet1");
@@ -1924,7 +1954,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if (!map.containsKey("deliverEndDate") || map.get("deliverEndDate") == null) {
 			throw new Exception("发货结束时间不能为空！");
 		}
-		
+
 		String outAttributeNames = " order_nature,count(id) order_state,sum(deposit_amout) deposit_amout,express_state,"
 				+ " sum(collection_amout) collection_amout,sum(total_amount) total_amount ";
 		map.put("outAttributeNames", outAttributeNames);
@@ -1954,10 +1984,10 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					//业务员或者管理员或者超管(如果是业务员，已经判断过是否是自己)
 					sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"')");
 				}*/
-				
+
 				sql.append(" and user_id =(select us.id from user_info us where us.phone='"+phone+"')");
 			}
-			
+
 		}else{
 			String userId = user.getId();
 			if(map.containsKey("userId")){
@@ -1972,7 +2002,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 									+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+"))"
 								+ " and us.region like '"+user.getRegion()+"%')");
 					}
-					
+
 					if(user.getRoleLevel()==2){
 						//二级管理员,sql.append只是为了限制不同的二级管理员（蜂蜜或者男科）不能看到对方数据
 						sql.append(" and user_id =(select us.id from user_info us where us.id='"+userId+"'"
@@ -1980,16 +2010,16 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 											+ "select ro.id from role_info ro where (ro.biz_range= "+user.getRoleBizRange()+")))");
 					}*/
 					/*if(user.getRoleLevel()<=1 || user.getRoleLevel()==4){*/
-						//业务员或者管理员或者超管(如果是业务员，已经判断过是否是自己)
-						sql.append(" and user_id='"+userId+"'");
+					//业务员或者管理员或者超管(如果是业务员，已经判断过是否是自己)
+					sql.append(" and user_id='"+userId+"'");
 					/*}*/
-					
+
 				}
 			}else{
 				sql.append(" and user_id ='"+userId+"'");
 			}
-			
-			
+
+
 		}
 		sql.append(" and order_nature is not null ");
 		sql.append(" group by order_nature,express_state ");
@@ -1998,7 +2028,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if (list == null || list.size() <= 0) {
 			return null;
 		}
-	
+
 		Map<String, Object> data2 = new HashMap<>();
 		data2.put("orderNature", "合计");
 		// 求和
@@ -2013,13 +2043,13 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		data2.put("totalAmount",
 				list.stream().map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : new BigDecimal(0.00))
 						.reduce(new BigDecimal(0.00), BigDecimal::add));
-		
+
 		NumberFormat percent = NumberFormat.getPercentInstance();
 		percent.setMaximumFractionDigits(2);
-		
+
 		// 筛选已签收的数据
 		List<OrderVO> sumSignList = list.stream().filter(a -> a.getExpressState() == 5).collect(Collectors.toList());
-		int sumSignNum = sumSignList.stream().mapToInt(OrderVO::getOrderState).sum();		
+		int sumSignNum = sumSignList.stream().mapToInt(OrderVO::getOrderState).sum();
 		if (sumSignNum > 0) {
 			data2.put("signNum", sumSignNum);
 			data2.put("signAmount",
@@ -2044,7 +2074,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 					sumRejectedList.stream()
 							.map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : new BigDecimal(0.00))
 							.reduce(new BigDecimal(0.00), BigDecimal::add));
-			
+
 		} else {
 			data2.put("rejectedNum", 0);
 			data2.put("rejectedAmount", 0);
@@ -2099,7 +2129,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						data4.put("signAmount", 0);
 						data4.put("signRate", percent.format(0));
 					}
-					
+
 					// 筛选已退回的数据
 					List<OrderVO> partRejectedList = partList.stream().filter(a -> a.getExpressState() == 4).collect(Collectors.toList());
 					if(partRejectedList != null && !partRejectedList.isEmpty()){
@@ -2110,7 +2140,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 									partRejectedList.stream()
 											.map(p -> p.getTotalAmount() != null ? p.getTotalAmount() : new BigDecimal(0.00))
 											.reduce(new BigDecimal(0.00), BigDecimal::add));
-							
+
 						} else {
 							data4.put("rejectedNum", 0);
 							data4.put("rejectedAmount", 0);
@@ -2119,7 +2149,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 						data4.put("rejectedNum", 0);
 						data4.put("rejectedAmount", 0);
 					}
-					
+
 					reDatas.add(data4);
 				}
 
@@ -2128,7 +2158,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		}
 		reDatas.add(data2);
 		return reDatas;
-		
+
 	}
 
 	@Override
@@ -2148,7 +2178,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 			}
 		}
 		return reDatas;
-		
+
 	}
 
 	@Transactional
@@ -2162,21 +2192,21 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		map1.put("2019-03-04", "2019-03-06");
 		long start = System.currentTimeMillis();
 		 System.out.println("beginTIme:"+start);
-		 for (Map.Entry<String, String> entry : map1.entrySet()) { 
-			  System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue()); 
+		 for (Map.Entry<String, String> entry : map1.entrySet()) {
+			  System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 			  doUpateCostRatioOrder(entry.getKey(),entry.getValue());
 			}*/
 		/*map1.forEach((k, v) -> {
-			taskExecutor.execute(new Runnable() {  
-			    @Override  
-			    public void run() {  
+			taskExecutor.execute(new Runnable() {
+			    @Override
+			    public void run() {
 			        	try {
 							doUpateCostRatioOrder(k,v);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-			       
-			    }  
+
+			    }
 			});
 		});*/
 	/*	 while (true){
@@ -2189,12 +2219,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 	                break; //所有线程任务执行完
 	            }
 		 }*/
-		 
-		 doUpateCostRatioOrder((String)map.get("beginDate"),(String)map.get("endDate"));
+
+		doUpateCostRatioOrder((String)map.get("beginDate"),(String)map.get("endDate"));
 		return null;
 	}
 
-	
+
 	public void doUpateCostRatioOrder(String beginDate, String endDate) throws Exception {
 		String sql = "select * from order_info where warehouse='001' and create_time between '" + beginDate
 				+ " 00:00:00' and '" + endDate + " 23:59:59'";
@@ -2221,12 +2251,12 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 				batchArgs.add(array);
 			}*/
 			if (CollectionUtils.isNotEmpty(upSqls)) {
-			/*if (CollectionUtils.isNotEmpty(batchArgs)) {*/
+				/*if (CollectionUtils.isNotEmpty(batchArgs)) {*/
 				int[] re= jdbcTemplate.batchUpdate(upSqls.toArray(new String[upSqls.size()]));
 				//int[] re= jdbcTemplate.batchUpdate(upSql, batchArgs);
 				System.out.println(beginDate+"============="+upSqls.size()+""+upSqls.toString());
 			}
 		}
 	}
-	
+
 }

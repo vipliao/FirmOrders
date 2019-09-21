@@ -12,7 +12,7 @@ import {
   Col,
   Input,
   Form,
-  Modal
+  Modal, Select
 } from 'antd';
 import {ZZCard, ZZTable} from 'Comps/zz-antD/index';
 
@@ -48,6 +48,32 @@ class Index extends React.Component {
         dataIndex: 'senderAddr',
         key: 'senderAddr',
       },{
+        title: '业务范围',
+        width: 250,
+        align: 'left',
+        dataIndex: 'bizRange',
+        key: 'bizRange',
+        render: (text, record, index) => {
+          let bizRange;
+         if(text !== null && text !=="" && text !== undefined){
+           switch (text) {
+             case 0:
+               bizRange ="不限"
+               break;
+             case 1:
+               bizRange = "蜂蜜";
+               break;
+             case 2:
+               bizRange = "柯南"
+               break;
+             default:
+               break;
+           }
+         }
+          return <div>{bizRange}</div>
+        }
+      },
+      {
         title: '更新时间',
         width: 200,
         align: 'center',
@@ -370,6 +396,22 @@ class Index extends React.Component {
                     rules: [{required: true, message: '请输入寄件地址'}]
                   })(
                     <Input/>
+                  )}
+                </FormItem>
+              </Col>
+              <Col>
+                <FormItem
+                    {...formItemLayout}
+                    label="业务范围"
+                >
+                  {getFieldDecorator('expressCompany', {
+                    initialValue: 0
+                  })(
+                      <Select defaultValue="0">
+                        <Option key='0' value={0}>不限</Option>
+                        <Option key='1' value={1}>蜂蜜</Option>
+                        <Option key='2' value={2}>柯南</Option>
+                      </Select>
                   )}
                 </FormItem>
               </Col>
