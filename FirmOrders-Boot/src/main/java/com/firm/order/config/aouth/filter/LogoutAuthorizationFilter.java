@@ -1,5 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
+import com.alibaba.fastjson.JSONObject;
 import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -55,7 +56,7 @@ public class LogoutAuthorizationFilter extends LogoutFilter {
 			PrintWriter out;
 			try {
 				out = httpServletResponse.getWriter();
-				out.println(EncryptHelper.encrypt(reMsg));
+				out.println(EncryptHelper.encrypt(JSONObject.parse(reMsg)));
 				out.flush();
 				out.close();
 			} catch (IOException e1) {

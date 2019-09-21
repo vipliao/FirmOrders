@@ -11,20 +11,21 @@ axios.interceptors.request.use(config => {
     // 在发送请求之前做些什么
     //设置token
     const token = sessionStorage.getItem('token');
-	if (token) {
+	/*if (token) {
         config.headers['X-Auth-Token'] = `${token}`;
-    }
+    }*/
     // 数据加密
-    /*switch (config.method.toUpperCase()) {
+    switch (config.method.toUpperCase()) {
         case 'GET':
             if (token) {
                 let data=new Object();
-                if(Object.prototype.toString.call(config.params) == '[object String]'){
+               /* if(Object.prototype.toString.call(config.params) == '[object String]'){
                     data = JSON.parse( config.params);
                 }else if(Object.prototype.toString.call(config.params) == '[object Object]'){
                     data =  config.params;
-                }
+                }*/
                 data['X-Auth-Token'] = `${token}`;
+                data['data'] = config.params;
                 config.params = data;
             }
             config.params = config.params?{p:Encrypt(config.params)}:null;
@@ -32,19 +33,22 @@ axios.interceptors.request.use(config => {
         case 'POST':
             if (token) {
                 let data = new Object();
-                if(Object.prototype.toString.call(config.data) == '[object String]'){
+               /* if(Object.prototype.toString.call(config.data) == '[object String]'){
                     data = JSON.parse(config.data);
-                }else if(Object.prototype.toString.call(config.data) == '[object Object]'){
+                }else if(Object.prototype.toString.call(config.data) == '[object Object]' ){
                     data = config.data;
-                }
+                }else if(Object.prototype.toString.call(config.data) =='[object Array]'){
+                    data = JSON.parse(config.data);
+                }*/
                 data['X-Auth-Token'] = `${token}`;
+                data['data'] = config.data;
                 config.data = data;
             }
             config.data =config.data?Encrypt(config.data):null;
             break;
         default:
             break;
-    }*/
+    }
 
     return config;
 }, error => {
@@ -55,9 +59,9 @@ axios.interceptors.request.use(config => {
 // 添加响应拦截器
 axios.interceptors.response.use(response => {
     //解密
-   /* if(response.data ){
+   if(response.data ){
         response.data = Decrypt(response.data);
-    }*/
+    }
     // 对响应数据做点什么
     if (response.status === 401) {
         window.location.hash = '/login';

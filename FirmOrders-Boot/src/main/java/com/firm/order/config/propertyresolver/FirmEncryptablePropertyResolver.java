@@ -10,8 +10,6 @@ public class FirmEncryptablePropertyResolver implements EncryptablePropertyResol
 	@Value("${encrypt.encodeRules}")
 	private String encodeRules;
 
-	
-
 	// 解密方法
 	@Override
 	public String resolvePropertyValue(String arg) {

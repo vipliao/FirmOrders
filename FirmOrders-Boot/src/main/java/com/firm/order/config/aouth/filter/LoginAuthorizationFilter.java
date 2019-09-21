@@ -1,5 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
+import com.alibaba.fastjson.JSONObject;
 import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -42,7 +43,7 @@ public class LoginAuthorizationFilter extends FormAuthenticationFilter{
         PrintWriter out;
         try {
             out = httpServletResponse.getWriter();
-            out.println(EncryptHelper.encrypt(errorMsg));
+            out.println(EncryptHelper.encrypt(JSONObject.parse(errorMsg)));
             out.flush();
             out.close();
         } catch (IOException e1) {
