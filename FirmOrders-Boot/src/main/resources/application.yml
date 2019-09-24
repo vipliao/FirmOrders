@@ -4,10 +4,7 @@ server:
         context-path: /FirmOrders
 spring:
     datasource:
-        type: com.alibaba.druid.pool.DruidDataSource
-        url: jdbc:mysql://127.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
-        username: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
-        password: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+        connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
         driverClassName: com.mysql.jdbc.Driver
         filters: stat,wall,log4j
         initialSize: 5
@@ -21,12 +18,15 @@ spring:
         testOnReturn: false
         testWhileIdle: true
         timeBetweenEvictionRunsMillis: 60000
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:mysql://127.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8
+        username: 123456
+        password: 123456
         validationQuery: SELECT 1 FROM DUAL
-        connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     jpa:
         database: MYSQL
         hibernate:
-            ddl-auto: none
+            ddl-auto: update
         show-sql: true
 
 ehcache:

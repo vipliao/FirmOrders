@@ -1,5 +1,6 @@
 package com.firm.order.config.cors;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.firm.order.modules.base.encrypt.EncryptHelper;
@@ -73,7 +74,15 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
                 String token = deData2obj.get("X-Auth-Token").toString();
                 if (StringUtils.isNotBlank(token)) {
                     reflectSetparam(request, "X-Auth-Token", token);
-                    content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+                    //content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+                    if(deData2obj.get("data") instanceof JSONObject){
+                        content = JSONObject.parseObject(deData2obj.get("data").toString()).toJSONString();
+                    }else if(deData2obj.get("data") instanceof JSONArray){
+                        content = JSONObject.parseArray(deData2obj.get("data").toString()).toJSONString();
+                    }else if (deData2obj.get("data") instanceof String ){
+                        content = deData2obj.get("data").toString();
+                    }
+
                 }
             }
             String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
@@ -222,8 +231,15 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
      */
     private Map<String, String[]> buildParams(String src) {
         Map<String, String[]> map = new HashMap<>();
-        Map<String, String> params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {
-        });
+        Map<String, String> params = new HashMap<>();
+        if(JSONObject.isValidObject(src)){
+            params = JSONObject.parseObject(src, new TypeReference<Map<String, String>>() {});
+        }else if(JSONObject.isValidArray(src)){
+           Object[] arr =  JSONObject.parseArray(src).toArray();
+            for(int i=0;i<arr.length;i++){
+                params.put(String.valueOf(i),arr[i].toString());
+            }
+        }
         for (String key : params.keySet()) {
             map.put(key, new String[]{params.get(key)});
         }

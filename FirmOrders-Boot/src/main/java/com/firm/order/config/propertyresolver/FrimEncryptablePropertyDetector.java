@@ -6,8 +6,6 @@ public class FrimEncryptablePropertyDetector implements EncryptablePropertyDetec
 
     public static final String ENCODED_PASSWORD_HINT = "dJICJBmLxRDD4e7/1Zekhw";
 
-    
-    
     // 如果属性的字符开头为"{cipher}"，返回true，表明该属性是加密过的
     @Override
     public boolean isEncrypted(String s) {

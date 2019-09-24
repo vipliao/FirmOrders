@@ -1,5 +1,6 @@
 package com.firm.order.config.aouth.filter;
 
+import com.alibaba.fastjson.JSONObject;
 import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter;
@@ -26,7 +27,7 @@ public class PermsAuthorizationFilter extends PermissionsAuthorizationFilter
 		PrintWriter out;
 		try {
 			out = httpServletResponse.getWriter();
-			out.println(EncryptHelper.encrypt("{\"code\":-1,\"msg\":\"登录用户无权执行该操作！\"}"));
+			out.println(EncryptHelper.encrypt(JSONObject.parse("{\"code\":-1,\"msg\":\"登录用户无权执行该操作！\"}")));
 			out.flush();
 			out.close();
 		} catch (IOException e1) {
