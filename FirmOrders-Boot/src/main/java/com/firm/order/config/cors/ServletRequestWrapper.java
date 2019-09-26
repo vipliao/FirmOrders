@@ -7,7 +7,6 @@ import com.firm.order.modules.base.encrypt.EncryptHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.http.MimeHeaders;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
@@ -16,6 +15,7 @@ import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.xml.soap.MimeHeaders;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -217,7 +217,7 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
             Field headers = o1.getClass().getDeclaredField("headers");
             headers.setAccessible(true);
             MimeHeaders o2 = (MimeHeaders) headers.get(o1);
-            o2.addValue(key).setString(value);
+            o2.addHeader(key,value);
         } catch (Exception e) {
             log.error("修改header信息方法", e);
         }

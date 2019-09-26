@@ -12,6 +12,9 @@
     <logger name="javax.management.remote" level="WARN"/>
     <logger name="javax.xml.bind" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="com.hazelcast" level="INFO"/>
+    <logger name="com.netflix" level="WARN"/>
+    <logger name="com.netflix.discovery" level="INFO"/>
     <logger name="com.ryantenney" level="WARN"/>
     <logger name="com.sun" level="WARN"/>
     <logger name="com.zaxxer" level="WARN"/>
@@ -22,16 +25,31 @@
     <logger name="org.bson" level="WARN"/>
     <logger name="org.hibernate.validator" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.engine.QueryParameters" level="DEBUG"/>
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
     <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
     <logger name="org.springframework.cache" level="WARN"/>
+    <logger name="org.thymeleaf" level="WARN"/>
     <logger name="org.xnio" level="WARN"/>
     <logger name="springfox" level="WARN"/>
     <logger name="sun.rmi" level="WARN"/>
+    <logger name="liquibase" level="WARN"/>
+    <logger name="LiquibaseSchemaResolver" level="INFO"/>
+    <logger name="springfox.documentation.schema.property" level="ERROR"/>
     <logger name="sun.net.www" level="INFO"/>
     <logger name="sun.rmi.transport" level="WARN"/>
-    <logger name="com.alibaba.dubbo" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+
+    <!-- https://logback.qos.ch/manual/configuration.html#shutdownHook and https://jira.qos.ch/browse/LOGBACK-1090 -->
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -41,10 +59,10 @@
     <!-- 每天产生一个文件 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 文件路径 -->
-        <file>${FILE_PATH}/FirmOrders.log</file>
+        <file>${FILE_PATH}/FirmOders.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- 文件名称 -->
-            <fileNamePattern>${FILE_PATH}/FirmOrders.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${FILE_PATH}/FirmOders.%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- 文件最大保存历史数量 -->
             <MaxHistory>100</MaxHistory>
         </rollingPolicy>
@@ -58,12 +76,14 @@
         <appender-ref ref="FILE"/>
     </appender>
 
+    <logger name="com.firm" level="DEBUG" />
+    <root level="INFO">
+        <appender-ref ref="ASYNC" />
+    </root>
     <!-- 多个使用逗号隔开 -->
     <springProfile name="dev">
         <logger name="com.firm" level="DEBUG" />
-        <logger name="org.hibernate.type.descriptor.sql.BasicBinder"  level="TRACE" />
         <root level="INFO">
-            <!--<appender-ref ref="CONSOLE" />-->
             <appender-ref ref="ASYNC" />
         </root>
     </springProfile>
@@ -71,15 +91,13 @@
     <springProfile name="test">
         <logger name="com.firm" level="DEBUG" />
         <root level="INFO">
-            <!--<appender-ref ref="CONSOLE" />-->
             <appender-ref ref="ASYNC" />
         </root>
     </springProfile>
 
     <springProfile name="beta">
-        <logger name="com.firm" level="DEBUG" />
+        <logger name="com.firm" level="INFO" />
         <root level="INFO">
-            <!--<appender-ref ref="CONSOLE" />-->
             <appender-ref ref="ASYNC" />
         </root>
     </springProfile>
@@ -87,16 +105,8 @@
     <springProfile name="prod">
         <logger name="com.firm" level="INFO" />
         <root level="INFO">
-            <!--<appender-ref ref="CONSOLE" />-->
             <appender-ref ref="ASYNC" />
         </root>
     </springProfile>
-
-    <!-- https://logback.qos.ch/manual/configuration.html#shutdownHook and https://jira.qos.ch/browse/LOGBACK-1090 -->
-    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-
-    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
-        <resetJUL>true</resetJUL>
-    </contextListener>
 
 </configuration>
