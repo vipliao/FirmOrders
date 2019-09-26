@@ -1,0 +1,30 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://47.92.82.33:3306/firm_orders_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+    password: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+
+encrypt:
+  encodeRules: FirmOrdersV1.0
+
+application:
+  clientPublickey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCl6Fs5ttmiCeGlS+8F0V2K7r/swAUie7crUeQ4o3Y3sdSOohsi0SnW6aIq4gcaTUIjr8Zv7AapGPM+cK9ac05ZgKKl7aXh7J6iHTs7w2Lo9s6ZFW0ewIweSDhjRUXHBD14W74Rq2CuIs6KxkJ6zWsVABf6Xr+P/J8g9U0yBkZ8rQIDAQAB
+  serverPrivatekey: MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAIJ+grty+95ZeDxMiqFzmhASKrCp55TDECZELmppaqFk2cJhkYriw6E2ZHUsdGwQuw9Qo8F8Ce6OqZHs3ncKKTfz3k8M+pVKnP96zGVhRnGrgFLELzzV8Bl6lgbtHQA/TUaOGEd6OJLRHraM7pTFaVSoiFvq0bf0l0ZvFVIXdxElAgMBAAECgYA4Li0sdIF5Jb29ABsDDVj7qEaWzl80TZKLVvlAuOe+WkPiCs11JNGie19ejugEimNuYYJOz48bFHJur7LLPyWlHf6tH/j1Xf/HQ4TtFAhAfeFqGcabicbP4ll71/EW6gOjAUL3Yt37Nx/+SWdm66rFrbaoucC3ToAdfhmsMkS+oQJBAOnF6BQ/t4tR/doAYmTJj4vrK3PHjybDEp+gYBy9w2ZS+qFD5r31EO8xct7KBZcK6I1dnSzOW0bBdKz2Fw/CBakCQQCO5sVTrceSn9aZsN5LcJD0E9oLisnxm0mIX0Cw/QyIKrqlajA/8tiRGdimOYiX5uFBNTGDqyST2tiR/w3rMyUdAkB9wnGvMvfSgzFE7aABCE2ov8KIbnqcJ6UFKomJ7KwJh+o8hwLCfeu2QavCHnwTXVLtecbsK7b+wWO7CEgvufjBAkBuRmuUbZCK98nVhIWm1dEmaYNkUNASIHGYSVlUu5JGKiMqr01YrACvyLBFZjSgdEzz0ybIovNxHfruf1KwZCGJAkAzv9erOlEmounOK7grvoRsYPK6hhV95adyJGHREFIQmz+JmNweTKFYSBf0Nd72p5fhKrZ5wmMNjSTneYtg1tP2
+
+threadpooltask:
+  corePoolSize: 10
+  maxPoolSize: 200
+  queueCapacity: 10
+
+trigger:
+  cron:
+    start_jobTask: '*/5 * * * * ?'
+
+jpush:
+  appKey: 633ec78b1558edc8dc52f371
+  group:
+    mastersecret: b11314807507e2bcfdeebe2e
+    pushkey: b11314807507e2bcfdeebe2e
+  mastersecret: '6d69610036f56820cb7d177f '
