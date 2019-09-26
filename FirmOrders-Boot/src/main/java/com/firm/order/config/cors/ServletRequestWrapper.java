@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.firm.order.modules.base.encrypt.EncryptHelper;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HttpString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -207,17 +209,28 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         Class<? extends HttpServletRequest> requestClass = request.getClass();
         log.debug("request实现类=" + requestClass.getName());
         try {
-            Field request1 = requestClass.getDeclaredField("request");
+            Field headers = null;
+            Object o1 = null;
+            //undertow
+            Field request1 = requestClass.getDeclaredField("exchange");
+            request1.setAccessible(true);
+            o1= request1.get(request);
+            headers = o1.getClass().getDeclaredField("requestHeaders");
+            headers.setAccessible(true);
+            HeaderMap o2 = (HeaderMap)headers.get(o1);
+            o2.add(HttpString.tryFromString(key),value);
+
+            //tomcat
+           /* Field request1 = requestClass.getDeclaredField("request");
             request1.setAccessible(true);
             Object o = request1.get(request);
             Field coyoteRequest = o.getClass().getDeclaredField("coyoteRequest");
             coyoteRequest.setAccessible(true);
-            Object o1 = coyoteRequest.get(o);
-            log.debug("coyoteRequest实现类=" + o1.getClass().getName());
-            Field headers = o1.getClass().getDeclaredField("headers");
+            o1 = coyoteRequest.get(o);
+            headers = o1.getClass().getDeclaredField("headers");
             headers.setAccessible(true);
-            MimeHeaders o2 = (MimeHeaders) headers.get(o1);
-            o2.addHeader(key,value);
+            org.apache.tomcat.util.http.MimeHeaders o2 = ( org.apache.tomcat.util.http.MimeHeaders) headers.get(o1);
+            o2.addValue(key).setString(value);*/
         } catch (Exception e) {
             log.error("修改header信息方法", e);
         }
