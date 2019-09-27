@@ -4,8 +4,8 @@
 <configuration scan="true">
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-    <property name="PATTERN" value="%-12(%d{yyyy-MM-dd HH:mm:ss.SSS}) |-%-5level [%thread] %c [%L] -| %msg%n" />
-    <property name="FILE_PATH" value="logs" />
+    <property name="PATTERN" value="%-12(%d{yyyy-MM-dd HH:mm:ss.SSS}) |-%-5level [%thread] %c [%L] -| %msg%n"/>
+    <property name="FILE_PATH" value="logs"/>
 
     <logger name="javax.activation" level="WARN"/>
     <logger name="javax.mail" level="WARN"/>
@@ -42,7 +42,7 @@
     <logger name="springfox.documentation.schema.property" level="ERROR"/>
     <logger name="sun.net.www" level="INFO"/>
     <logger name="sun.rmi.transport" level="WARN"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
 
     <!-- https://logback.qos.ch/manual/configuration.html#shutdownHook and https://jira.qos.ch/browse/LOGBACK-1090 -->
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
@@ -56,21 +56,37 @@
             <pattern>${PATTERN}</pattern>
         </encoder>
     </appender>
-    <!-- 每天产生一个文件 -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!-- 文件路径 -->
-        <file>${FILE_PATH}/FirmOders.log</file>
+    <!--文件输出的格式设置 -->
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志日常打印文件 -->
+        <file>${FILE_PATH}/FirmOrders.log</file>
+        <!-- 配置日志所生成的目录以及生成文件名的规则 在logs/mylog-2017-06-31.0.log.zip -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- 文件名称 -->
-            <fileNamePattern>${FILE_PATH}/FirmOders.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- 文件最大保存历史数量 -->
-            <MaxHistory>100</MaxHistory>
+            <fileNamePattern>${FILE_PATH}/FirmOrders-%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <!-- 如果按天来回滚，则最大保存时间为365天，365天之前的都将被清理掉 -->
+            <maxHistory>100</maxHistory>
+            <!-- 日志总保存量为10GB -->
+            <totalSizeCap>10GB</totalSizeCap>
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!--文件达到 最大128MB时会被压缩和切割 -->
+                <maxFileSize>128MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>${PATTERN}</pattern>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <!-- 文件输出的日志 的格式 -->
+        <encoder>
+            <pattern>
+                [ %-5level] [%date{yyyy-MM-dd HH:mm:ss}] %logger{96} -%msg%n
+            </pattern>
+            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
         </encoder>
+        <!-- Safely log to the same file from multiple JVMs. Degrades performance! -->
+        <prudent>false</prudent>
     </appender>
-
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
         <queueSize>512</queueSize>
         <appender-ref ref="FILE"/>
@@ -78,23 +94,23 @@
 
     <!-- 多个使用逗号隔开 -->
     <springProfile name="dev">
-        <logger name="com.firm" level="DEBUG" />
+        <logger name="com.firm" level="DEBUG"/>
         <root level="INFO">
-            <appender-ref ref="ASYNC" />
+            <appender-ref ref="ASYNC"/>
         </root>
     </springProfile>
 
     <springProfile name="test">
-        <logger name="com.firm" level="DEBUG" />
+        <logger name="com.firm" level="DEBUG"/>
         <root level="INFO">
-            <appender-ref ref="ASYNC" />
+            <appender-ref ref="ASYNC"/>
         </root>
     </springProfile>
 
     <springProfile name="prod">
-        <logger name="com.firm" level="INFO" />
+        <logger name="com.firm" level="INFO"/>
         <root level="INFO">
-            <appender-ref ref="ASYNC" />
+            <appender-ref ref="ASYNC"/>
         </root>
     </springProfile>
 

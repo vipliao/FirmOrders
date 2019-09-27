@@ -230,6 +230,27 @@
                 </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>application-prd.yml</exclude>
+                    <exclude>application-dev.yml</exclude>
+                    <exclude>application-test.yml</exclude>
+                    <exclude>application.yml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>application.yml</include>
+                    <include>application-${spring.profiles.active}.yml</include>
+                   <!-- <include>logback-${spring.profiles.active}.xml</include>-->
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
     <profiles>
         <profile>
@@ -245,12 +266,6 @@
             <id>test</id>
             <properties>
                 <spring.profiles.active>test</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>beta</id>
-            <properties>
-                <spring.profiles.active>beta</spring.profiles.active>
             </properties>
         </profile>
         <profile>
