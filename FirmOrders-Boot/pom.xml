@@ -270,20 +270,6 @@
         </profile>
         <profile>
             <id>prod</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>target/classes/static/</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
             <properties>
                 <spring.profiles.active>prod</spring.profiles.active>
             </properties>
