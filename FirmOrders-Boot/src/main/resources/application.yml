@@ -41,15 +41,9 @@ spring:
 ehcache:
     file: ehcache.xml
 
-httpheader:
-    authorization: x-auth-token
-
 mybatis:
     mapper-locations: classpath:mapper/*.xml
     type-aliases-package: com.firm.order.modules.*
-
-poi:
-    exceltemplatesPath: classpath:templates/excel-template
 
 session:
     id: FIRMSESSIONID
