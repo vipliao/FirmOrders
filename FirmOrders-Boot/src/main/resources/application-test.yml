@@ -2,9 +2,9 @@ spring:
   profiles:
     active: test
   datasource:
-    url: jdbc:mysql://47.92.82.33:3306/firm_orders_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
-    username: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
-    password: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+    url: jdbc:mysql://127.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: 123456
+    password: 123456
 
 encrypt:
   encodeRules: FirmOrdersV1.0

@@ -57,45 +57,48 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         super(request);
         originalRequest = request;
 
-        //解密
-        String content = decrypt(request);
+       if(request.getRequestURL().toString().indexOf("assessory") ==-1){
+           //解密
+           String content = decrypt(request);
 
-        //sql注入过滤
-        if (StringUtils.isNotBlank(content)) {
-            SQLFilter.sqlInject(content);
-        }
+           //sql注入过滤
+           if (StringUtils.isNotBlank(content)) {
+               SQLFilter.sqlInject(content);
+           }
 
-        //xss过滤
-        if (StringUtils.isNotBlank(content)) {
-            content = xssEncode(content);
-        }
+           //xss过滤
+           if (StringUtils.isNotBlank(content)) {
+               content = xssEncode(content);
+           }
 
-        if (StringUtils.isNotBlank(content)) {
-            JSONObject deData2obj = JSONObject.parseObject(content);
-            if (deData2obj != null && deData2obj.containsKey("X-Auth-Token")) {
-                String token = deData2obj.get("X-Auth-Token").toString();
-                if (StringUtils.isNotBlank(token)) {
-                    reflectSetparam(request, "X-Auth-Token", token);
-                    //content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
-                    if(deData2obj.get("data") instanceof JSONObject){
-                        content = JSONObject.parseObject(deData2obj.get("data").toString()).toJSONString();
-                    }else if(deData2obj.get("data") instanceof JSONArray){
-                        content = JSONObject.parseArray(deData2obj.get("data").toString()).toJSONString();
-                    }else if (deData2obj.get("data") instanceof String ){
-                        content = deData2obj.get("data").toString();
-                    }
+           if (StringUtils.isNotBlank(content)) {
+               JSONObject deData2obj = JSONObject.parseObject(content);
+               if (deData2obj != null && deData2obj.containsKey("X-Auth-Token")) {
+                   String token = deData2obj.get("X-Auth-Token").toString();
+                   if (StringUtils.isNotBlank(token)) {
+                       reflectSetparam(request, "X-Auth-Token", token);
+                       //content = deData2obj.fluentRemove("X-Auth-Token").toJSONString();
+                       if(deData2obj.get("data") instanceof JSONObject){
+                           content = JSONObject.parseObject(deData2obj.get("data").toString()).toJSONString();
+                       }else if(deData2obj.get("data") instanceof JSONArray){
+                           content = JSONObject.parseArray(deData2obj.get("data").toString()).toJSONString();
+                       }else if (deData2obj.get("data") instanceof String ){
+                           content = deData2obj.get("data").toString();
+                       }
 
-                }
-            }
-            String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
-            if (null != contentType && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
-                if (this.inputStream == null) {
-                    this.inputStream = new ServletRequestInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
-                }
+                   }
+               }
+               String contentType = request.getHeader(HttpHeaders.CONTENT_TYPE);
+               if (null != contentType && contentType.contains(MediaType.APPLICATION_JSON_VALUE)) {
+                   if (this.inputStream == null) {
+                       this.inputStream = new ServletRequestInputStream(new ByteArrayInputStream(content.getBytes("UTF-8")));
+                   }
 
-            }
-            parameterMap = buildParams(content);
-        }
+               }
+               parameterMap = buildParams(content);
+           }
+       }
+
 
 
     }
