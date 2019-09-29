@@ -2,9 +2,9 @@ spring:
   profiles:
     active: prod
   datasource:
-    url: jdbc:mysql://47.244.225.27:3306/firm_orders?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
+    url: jdbc:mysql://127.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: 123456
+    password: 123456
   jpa:
     show-sql: false
     hibernate:
