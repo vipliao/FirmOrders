@@ -235,24 +235,31 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <useDefaultDelimiters>false</useDefaultDelimiters>
+                    <delimiters>
+                        <delimiter>#</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
         </plugins>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
+                <directory>src/main/resources/</directory>
                 <excludes>
-                    <exclude>application-prd.yml</exclude>
-                    <exclude>application-dev.yml</exclude>
-                    <exclude>application-test.yml</exclude>
-                    <exclude>application.yml</exclude>
+                    <exclude>config/*.yml</exclude>
                 </excludes>
+                <filtering>false</filtering>
             </resource>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>src/main/resources/</directory>
+                <!--需要保留的文件 -->
                 <includes>
-                    <include>application.yml</include>
-                    <include>application-${spring.profiles.active}.yml</include>
-                   <!-- <include>logback-${spring.profiles.active}.xml</include>-->
+                    <include>config/application.yml</include>
+                    <include>config/application-${spring.profiles.active}.yml</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>

@@ -1,14 +1,11 @@
 spring:
   profiles:
-    active: prod
+    active: dev
   datasource:
-    url: jdbc:mysql://127.0.0.0.1:3306/firm_orders?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
-    username: 123456
-    password: 123456
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: update
+    url: jdbc:mysql://47.92.82.33:3306/firm_orders_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
 encrypt:
   encodeRules: FirmOrdersV1.0
 
@@ -37,4 +34,3 @@ jpush:
     mastersecret: b11314807507e2bcfdeebe2e
     pushkey: b11314807507e2bcfdeebe2e
   mastersecret: '6d69610036f56820cb7d177f '
-
