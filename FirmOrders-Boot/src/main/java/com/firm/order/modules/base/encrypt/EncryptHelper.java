@@ -7,15 +7,21 @@ import com.firm.order.config.context.ApplicationProperties;
 import com.firm.order.utils.AesEncryptUtils;
 import com.firm.order.utils.RSAUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+@Component
 public class EncryptHelper {
 
-    private static ApplicationProperties applicationProperties = ApplicationProperties.initConfig();
+    private static ApplicationProperties applicationProperties;
 
+    @Autowired
+    public void init(ApplicationProperties applicationProperties) {
+        EncryptHelper.applicationProperties = applicationProperties;
+    }
 
     /**
      * RSA+AES加密

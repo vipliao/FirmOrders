@@ -13,22 +13,23 @@ import org.springframework.stereotype.Component;
  * Properties are configured in the application.yml file.
  */
 
-@Configuration(value="applicationProperties")
+//@Configuration(value="applicationProperties")
 @ConfigurationProperties(
         prefix = "application",
         ignoreUnknownFields = false
 )
+@Data
 public class ApplicationProperties {
-    public ApplicationProperties(){
+  /*  public ApplicationProperties(){
 
-    }
+    }*/
 
-    private static ApplicationProperties applicationProperties;
+    //private static ApplicationProperties applicationProperties;
 
     private String serverPrivatekey;
     private String clientPublickey;
 
-    public String getServerPrivatekey() {
+   /* public String getServerPrivatekey() {
         return serverPrivatekey;
     }
 
@@ -42,14 +43,14 @@ public class ApplicationProperties {
 
     public void setClientPublickey(String clientPublickey) {
         this.clientPublickey = clientPublickey;
-    }
+    }*/
 
-   public static ApplicationProperties initConfig() {
+   /*public static ApplicationProperties initConfig() {
         if (applicationProperties == null) {
             applicationProperties = SpringContextHolder.getBean("applicationProperties", ApplicationProperties.class);
         }
         return applicationProperties;
-    }
+    }*/
 
 
 }

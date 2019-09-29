@@ -1,5 +1,6 @@
 package com.firm.order;
 
+import com.firm.order.config.context.ApplicationProperties;
 import com.firm.order.config.context.DefaultProfileUtil;
 import com.firm.order.config.propertyresolver.FirmEncryptablePropertyResolver;
 import com.firm.order.config.propertyresolver.FrimEncryptablePropertyDetector;
@@ -11,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -21,9 +24,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @SpringBootApplication
-@ServletComponentScan
 @Slf4j
-//@ImportResource(locations={"classpath:application-quartz.xml"})
+@EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
 public class FirmOrdersBootApplication implements InitializingBean {
 
     private final Environment env;
