@@ -210,7 +210,6 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
      */
     private void reflectSetparam(HttpServletRequest request, String key, String value) {
         Class<? extends HttpServletRequest> requestClass = request.getClass();
-        log.debug("request实现类=" + requestClass.getName());
         try {
             Field headers = null;
             Object o1 = null;

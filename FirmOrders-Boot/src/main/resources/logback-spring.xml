@@ -44,13 +44,7 @@
     <logger name="sun.rmi.transport" level="WARN"/>
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
     <!--JdbcTemplate的日志输出器 -->
-<!--    <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="TRACE"/>
-    <logger name="org.springframework.jdbc.core" level="DEBUG" />
-    <logger name="java.sql.Connection" level="DEBUG" />
-    <logger name="java.sql.Statement" level="DEBUG" />
-    <logger name="java.sql.PreparedStatement" level="DEBUG" />
-    <logger name="java.sql.ResultSet" level="DEBUG" />-->
-
+    <logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG" />
 
     <!-- https://logback.qos.ch/manual/configuration.html#shutdownHook and https://jira.qos.ch/browse/LOGBACK-1090 -->
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
