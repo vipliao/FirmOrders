@@ -219,12 +219,12 @@
                     <packages>com.firm.order</packages>
                     <excludes>org.spring</excludes>
                     <libjars>a.jar,b.jar</libjars>
-                    <cfgfiles>
+                   <!-- <cfgfiles>
                         application.yml,
                         application-${spring.profiles.active}.yml,
                         ehcache.xml,
                         logback-spring.xml
-                    </cfgfiles>
+                    </cfgfiles>-->
                 </configuration>
                 <executions>
                     <execution>
