@@ -35,7 +35,8 @@ class DetailForm extends React.Component {
             fileList: [],
             loading: false,
             roleList: [],
-            submitLoading: false
+            submitLoading: false,
+            fileLoading :false
         };
     }
 
@@ -51,6 +52,21 @@ class DetailForm extends React.Component {
         if (file.status === 'removed') {
             this.delFile(file.response.backData.id);
         }
+    }
+    beforeUpload = (file) =>{
+        const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+        if (!isJpgOrPng) {
+            Message.error('头像图片格式不正确,请重新选择!');
+            this.setState({fileList:[]})
+            //return false
+        }
+        const isLt2M = file.size / 1024 / 1024 < 2;
+        if (!isLt2M) {
+            Message.error('头像图片2MB!');
+            this.setState({fileList:[]})
+            return false
+        }
+        return isJpgOrPng && isLt2M;
     }
 
     normFile = (e) => {
@@ -76,6 +92,7 @@ class DetailForm extends React.Component {
             }
         });
     }
+
 
     queryDetail = () => {
         const id = sessionStorage.userId;
@@ -290,9 +307,11 @@ class DetailForm extends React.Component {
                                         name='bannerImage'
                                         action={uploadUrl}
                                         listType="picture-card"
+                                        accept="image/jpeg,image/png"
+                                        beforeUpload={this.beforeUpload}
                                         onChange={this.handleChange}
                                     >
-                                        {fileList.length === 0 ? <Button>
+                                       {fileList.length === 0 ? <Button>
                                             <Icon type="upload"/> 上传头像
                                         </Button> : null}
                                     </Upload>

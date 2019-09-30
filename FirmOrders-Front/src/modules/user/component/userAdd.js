@@ -136,6 +136,22 @@ class Index extends React.Component {
     });
   }
 
+  beforeUpload = (file) =>{
+    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+    if (!isJpgOrPng) {
+      Message.error('头像图片格式不正确,请重新选择!');
+      this.setState({fileList:[]})
+      return false
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      Message.error('头像图片2MB!');
+      this.setState({fileList:[]})
+      return false
+    }
+    return isJpgOrPng && isLt2M;
+  }
+
   render() {
     const {getFieldDecorator} = this.props.form;
     const {fileList, roleList, roleLoading, submitLoading} = this.state;
@@ -169,10 +185,12 @@ class Index extends React.Component {
                         headers={{
                           'X-Auth-Token': sessionStorage.token
                         }}
+                        accept="image/jpeg,image/png"
                         name='bannerImage'
                         action={uploadUrl}
                         listType={'picture'}
                         onChange={this.handleChange}
+                        beforeUpload={this.beforeUpload}
                       >
                         {fileList.length >= 1 ? null :
                           <Button><Icon type="upload"/> 上传</Button>}
