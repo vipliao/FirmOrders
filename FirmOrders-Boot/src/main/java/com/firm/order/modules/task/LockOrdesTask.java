@@ -18,7 +18,7 @@ public class LockOrdesTask {
 	private JdbcTemplate jdbcTemplate;
 	
 	@Transactional
-	@Scheduled(cron = "0 0 10 * * ?")
+	@Scheduled(cron = "0 0 16 * * ?")
 	public void work() {
 		String sql = "update order_info set order_state=1 where to_days(deliver_date) = to_days(now())";
 		jdbcTemplate.update(sql);

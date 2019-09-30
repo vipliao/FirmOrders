@@ -1,0 +1,40 @@
+spring:
+  profiles:
+    active: prod
+  datasource:
+    url: jdbc:mysql://47.244.225.27:3306/firm_orders?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    username: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+    password: dJICJBmLxRDD4e7/1ZekhwM7+UDllVDgBKbmO0V7JZDw==
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+encrypt:
+  encodeRules: FirmOrdersV1.0
+
+httpheader:
+  authorization: x-auth-token
+
+poi:
+  exceltemplatesPath: classpath:templates/excel-template
+
+application:
+  clientPublickey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpQZ+Sv3dZvzhBmuJS/xJpbfkRktKSWdQSVA4jC8tLaLeALUjzxY/fhw9cX3G2RAws3BhbgvhJG8VHbUQ0U0ffAkvccQMzOZDqhWl0sfP6dT7wycodT7sg5Q/YQqCIyBhnYvuQrWq98nIDVdS3K/nIZxV5P9blr33yIKkurI9HDQIDAQAB
+  serverPrivatekey: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAKDZX/ewOCCR6uqW4zgXn8XRFwMj510NMH1WkTNrltdoarY+Owe8ahr5bbbFH2Escb+HDvcKoNl7XTrTpUWdTuDZHouMFcNoBwMCFon5coJ2PbLJ/oTzUoGeq9ZW2bLo8QeHYIVU9C27SkXfkkawpQDeE+j3BFvqIer+hsh2lJh/AgMBAAECgYB0qpZIAmIDhbL9amnucnwpsCnf1jfnLzzffF2fDUeAgDT+cI7CYrAXVpl0eu/yvJjYka6SEvxuImOR2pdCsgHWPZnmkeirs9Bxkocz5EY5WKj4I6JMwZJBHbv3LN8SbgXK1XF3443A5q8JgYLv4ygN++p2aVIXN/lfk+tfaaYhwQJBAOjn6CDpNGGxO3NSIuk/ir+gWt5sTb04ynG5xiSGxiRKnyepuVhWySB4rP3ASXKr+97MG2XVURD3/CaeuM+hxOECQQCwzGBDLhRZ4S/HM/+vmUGvEr4/N2n4bPNAPctzlCnL0+T7gRtf2Dzqp1+yI9dkai80HCFS3CgTOMRfKIjdFKlfAkEAqIr5/qcEUxXwkbmErgpfm+CtIXx6nU41oirv6orlZGnj1s4J5JWZIrhxZ4f5HtS6hjZqNT0zVvY+MKx3zTmhwQJBAJ4Igb9rMAvLSx7f7xwyfNEWivINAW9rS+BPnE2a0eV9acAafrKkoocJx3N/sCf09m64+lyLqFLOOlHo9LXRozcCQBNvjcZjdJj/FdbpEEnv5vzcZOlilVTVPYqB56eq7LTQ9itxYC4hvM116BSP+bN+N06R3izYG0KEiAHAlILKwWU=
+
+threadpooltask:
+  corePoolSize: 10
+  maxPoolSize: 200
+  queueCapacity: 10
+
+trigger:
+  cron:
+    start_jobTask: '*/5 * * * * ?'
+
+jpush:
+  appKey: 633ec78b1558edc8dc52f371
+  group:
+    mastersecret: b11314807507e2bcfdeebe2e
+    pushkey: b11314807507e2bcfdeebe2e
+  mastersecret: '6d69610036f56820cb7d177f '
+

@@ -219,12 +219,12 @@
                     <packages>com.firm.order</packages>
                     <excludes>org.spring</excludes>
                     <libjars>a.jar,b.jar</libjars>
-                   <!-- <cfgfiles>
-                        application.yml,
-                        application-${spring.profiles.active}.yml,
-                        ehcache.xml,
-                        logback-spring.xml
-                    </cfgfiles>-->
+                    <cfgfiles>
+                        <!--application.yml,
+                        application-${spring.profiles.active}.yml-->
+                       <!-- ehcache.xml,
+                        logback-spring.xml-->
+                    </cfgfiles>
                 </configuration>
                 <executions>
                     <execution>
@@ -248,18 +248,18 @@
         </plugins>
         <resources>
             <resource>
-                <directory>src/main/resources/</directory>
+                <directory>src/main/resources</directory>
                 <excludes>
-                    <exclude>config/*.yml</exclude>
+                    <exclude>*.yml</exclude>
                 </excludes>
                 <filtering>false</filtering>
             </resource>
             <resource>
-                <directory>src/main/resources/</directory>
+                <directory>src/main/resources</directory>
                 <!--需要保留的文件 -->
                 <includes>
-                    <include>config/application.yml</include>
-                    <include>config/application-${spring.profiles.active}.yml</include>
+                    <include>application.yml</include>
+                    <include>application-${spring.profiles.active}.yml</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>

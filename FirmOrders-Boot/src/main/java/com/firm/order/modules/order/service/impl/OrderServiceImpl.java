@@ -440,7 +440,7 @@ public class OrderServiceImpl extends BaseServiceImpl<OrderEntity, OrderVO> impl
 		if(null !=dbvo){
 			String today = new SimpleDateFormat("yyMMdd").format(new Date());
 			int todayInt = Integer.parseInt(today);
-			Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 10:00:00");
+			Date todayLockTime = new SimpleDateFormat("yyMMdd hh:mm:ss").parse(today+" 16:00:00");
 			int deliverDateInt = Integer.parseInt(new SimpleDateFormat("yyMMdd").format(dbvo.getDeliverDate()));
 			UserVO userVO = getCurrentUser();
 			if (userVO != null && userVO.getRoleLevel()==4) {
