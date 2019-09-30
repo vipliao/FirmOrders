@@ -301,7 +301,8 @@ class Index extends React.Component {
 
             this.setState({
               params: {
-                pageNumber: 1
+                pageNumber: 1,
+                pageSize: 10,
               },
             }, () => {
               this.queryList();

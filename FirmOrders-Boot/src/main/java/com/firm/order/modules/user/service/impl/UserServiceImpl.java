@@ -17,9 +17,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -194,7 +192,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		if (list != null && list.size() > 0) {
 			queryAssessorys(list);
 			queryOwnResources(list);
-			return new PageImpl<UserVO>(list, pageable, pageable != null ? total : (long) list.size());
+			return new PageImpl<UserVO>(list, pageable!=null?pageable: new PageRequest(0,total), pageable != null ? total : (long) list.size());
 		}
 		return null;
 	}
@@ -561,7 +559,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserEntity, UserVO> impleme
 		
 	}
 	
-	@Transactional
+	@Override
+    @Transactional
 	public UserVO saveUserOwnResources1(String userId,List<UserOwnResourceVO> list) throws Exception{
 		List<UserOwnResourceVO> reUserORList = saveUserOwnResources(userId,list);
 		UserVO reVO = findVOById(userId, UserVO.class);
