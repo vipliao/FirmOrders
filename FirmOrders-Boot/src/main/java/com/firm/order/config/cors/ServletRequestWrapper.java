@@ -57,7 +57,7 @@ public class ServletRequestWrapper extends HttpServletRequestWrapper {
         super(request);
         originalRequest = request;
 
-       if(request.getRequestURL().toString().indexOf("assessory") ==-1){
+       if(request.getRequestURL().toString().indexOf("assessory/upload") ==-1){
            //解密
            String content = decrypt(request);
 

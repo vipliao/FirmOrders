@@ -24,7 +24,7 @@ public class EncryptResponseBody implements ResponseBodyAdvice {
         if (body instanceof byte[]) {
             return body;
         }
-        if(serverHttpRequest.getURI().getPath().indexOf("assessory") !=-1){
+        if(serverHttpRequest.getURI().getPath().indexOf("assessory/upload") !=-1){
             return body;
         }
        return EncryptHelper.encrypt(body);
