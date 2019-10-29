@@ -19,7 +19,7 @@
 		<junit.version>4.11</junit.version>
 		<mysql.version>5.1.21</mysql.version>
 		<tomcat-jdbc.version>7.0.42</tomcat-jdbc.version>
-		<netty.version>4.0.19.Final</netty.version>
+		<netty.version>4.1.42.Final</netty.version>
 		<commons-pool2.version>2.2</commons-pool2.version>
 		<!-- Plugin的属性定义 -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -378,7 +378,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.1.6.Final</version>
+			<version>4.1.42.Final</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
